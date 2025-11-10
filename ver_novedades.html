@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Partes de Novedades</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ver_novedades.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="view-novedades-container">
+        <h1>Partes de Novedades Registrados</h1>
+
+        <div class="filters-container">
+            <div class="filter-group">
+                <label for="filterDate">Dia del hecho:</label>
+                <input type="date" id="filterDate">
+            </div>
+            <div class="filter-group">
+                <label for="filterFechaCarga">Fecha de Carga:</label>
+                <input type="date" id="filterFechaCarga">
+            </div>
+            <div class="filter-group">
+                <label for="filterStartTime">Hora Inicio:</label>
+                <input type="time" id="filterStartTime">
+            </div>
+            <div class="filter-group">
+                <label for="filterEndTime">Hora Fin:</label>
+                <input type="time" id="filterEndTime">
+            </div>
+            <div class="filter-group">
+                <label for="filterTipoDependencia">Tipo de Dependencia:</label>
+                <select id="filterTipoDependencia">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterImputado">Nombre del Imputado:</label>
+                <input type="text" id="filterImputado" placeholder="Filtrar por nombre del imputado">
+            </div>
+            <div class="filter-group">
+                <label for="filterVictima">Nombre de la Victima:</label>
+                <input type="text" id="filterVictima" placeholder="Filtrar por nombre de la victima">
+            </div>
+            <button id="applyFiltersBtn">Filtrar</button>
+            <button id="clearFiltersBtn">Limpiar Filtros</button>
+            <button id="downloadPdfBtn">Descargar PDF</button>
+            <button id="downloadExcelBtn">Descargar Excel</button>
+        </div>
+
+        <div id="novedadesList"></div>
+        <button onclick="window.history.back()">Volver a la página anterior</button>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // Usar configuración centralizada
+        const API_BASE_URL = Config.API_BASE_URL;
+        let allNovedades = []; // Variable global para almacenar todas las novedades
+        let currentNovedadesToRender = []; // Variable para almacenar las novedades actuales renderizadas
+
+        const desiredFields = [
+            { key: 'fechaCreacion', label: 'FECHA DE CARGA' },
+            { key: 'horaCarga', label: 'HORA DE CARGA' },
+            { key: 'fechaDelHecho', label: 'FECHA DEL HECHO' },
+            { key: 'horaDelHecho', label: 'HORA DEL HECHO' },
+            { key: 'sumario', label: 'SUMARIO' },
+            { key: 'expediente', label: 'EXPEDIENTE' },
+            { key: 'dependencia', label: 'DEPENDENCIA' },
+            { key: 'encuadreLegal', label: 'ENCUADRE LEGAL' },
+            { key: 'detallesNovedad', label: 'DETALLES DE LA NOVEDAD' },
+            { key: 'calle', label: 'CALLE' },
+            { key: 'barrio', label: 'BARRIO' },
+            { key: 'coordenadas', label: '' }, // Se manejará como Latitud y Longitud
+            { key: 'lugar', label: 'LUGAR' },
+            { key: 'bienAfectado', label: 'BIEN AFECTADO' },
+            { key: 'victima', label: 'DATOS DE LA VICTIMA' },
+            { key: 'nombreImputado', label: 'DATOS DEL IMPUTADO' },
+            { key: 'esclarecidos', label: 'ESTADO/SITUACION' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const novedadesListDiv = document.getElementById('novedadesList');
+
+            const filterDateInput = document.getElementById('filterDate');
+            const filterStartTimeInput = document.getElementById('filterStartTime');
+            const filterEndTimeInput = document.getElementById('filterEndTime');
+            const filterTipoDependenciaSelect = document.getElementById('filterTipoDependencia');
+            const filterImputadoInput = document.getElementById('filterImputado');
+            const filterVictimaInput = document.getElementById('filterVictima');
+            const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+            const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+
+            const userRole = localStorage.getItem('userRole'); // Obtener el rol del usuario
+
+            // Fetch novedades from API
+            function fetchNovedades() {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    alert('No estás autenticado. Por favor, inicia sesión.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                fetch(`${API_BASE_URL}/novedades`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.message || 'Error al cargar las novedades.');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    allNovedades = data; // Store fetched data globally
+                    
+                    // Filtrar por dependencia según el rol del usuario
+                    if (userRole === 'OFICIAL DE 41') {
+                        allNovedades = allNovedades.filter(novedad => {
+                            return novedad.dependencia && novedad.dependencia.includes('41');
+                        });
+                    } else if (userRole === 'OFICIAL MANZANO HISTORICO') {
+                        allNovedades = allNovedades.filter(novedad => {
+                            return novedad.dependencia && novedad.dependencia.includes('subcomisaria_el_manzano');
+                        });
+                    } else if (userRole === 'OFICIAL CORDON DEL PLATA') {
+                        allNovedades = allNovedades.filter(novedad => {
+                            return novedad.dependencia && novedad.dependencia.includes('subcomisaria_cordon_del_plata');
+                        });
+                    } else if (userRole === 'OFICIAL DE SAN JOSE') {
+                        allNovedades = allNovedades.filter(novedad => {
+                            return novedad.dependencia && novedad.dependencia.includes('subcomisaria_san_jose');
+                        });
+                    } else if (userRole === 'JEF.DTAL.TUNUYAN') {
+                        allNovedades = allNovedades.filter(novedad => {
+                            return novedad.dependencia && (
+                                novedad.dependencia.includes('comisaria_15') ||
+                                novedad.dependencia.includes('comisaria_65') ||
+                                novedad.dependencia.includes('subcomisaria_el_manzano')
+                            );
+                        });
+                    } else if (userRole === 'JEF.DTAL.SAN CARLOS') {
+                        allNovedades = allNovedades.filter(novedad => {
+                            return novedad.dependencia && (
+                                novedad.dependencia.includes('comisaria_18') ||
+                                novedad.dependencia.includes('comisaria_41')
+                            );
+                        });
+                    }
+                    
+                    populateFilters(allNovedades);
+                    renderNovedades(allNovedades); // Render all initially
+                })
+                .catch(error => {
+                    console.error('Error al obtener novedades:', error);
+                    alert(`Error: ${error.message}`);
+                });
+            }
+
+            function renderNovedades(novedadesToRender) {
+                currentNovedadesToRender = novedadesToRender;
+                novedadesListDiv.innerHTML = '';
+
+                if (novedadesToRender.length === 0) {
+                    novedadesListDiv.innerHTML = '<p>No hay partes de novedades para mostrar con los filtros aplicados.</p>';
+                    return;
+                }
+
+                const groupedNovedades = {};
+                novedadesToRender.forEach(novedad => {
+                    const fecha = novedad.fechaCreacion || novedad.fechaDelHecho;
+                    const hora = novedad.horaCarga || novedad.horaDelHecho;
+
+                    if (!groupedNovedades[fecha]) {
+                        groupedNovedades[fecha] = {};
+                    }
+                    if (!groupedNovedades[fecha][hora]) {
+                        groupedNovedades[fecha][hora] = [];
+                    }
+                    groupedNovedades[fecha][hora].push(novedad);
+                });
+
+                const sortedFechas = Object.keys(groupedNovedades).sort().reverse();
+
+                sortedFechas.forEach(fecha => {
+                    // const dateSection = document.createElement('div'); // Eliminado
+                    // dateSection.classList.add('date-section'); // Eliminado
+                    // dateSection.innerHTML = `<h2>Fecha: ${fecha}</h2>`; // Eliminado
+                    // novedadesListDiv.appendChild(dateSection); // Eliminado
+
+                    const sortedHoras = Object.keys(groupedNovedades[fecha]).sort().reverse();
+
+                    sortedHoras.forEach(hora => {
+                        // const timeSection = document.createElement('div'); // Eliminado
+                        // timeSection.classList.add('time-section'); // Eliminado
+                        // timeSection.innerHTML = `<h3>Hora: ${hora}</h3>`; // Eliminado
+                        // dateSection.appendChild(timeSection); // Eliminado
+
+                        groupedNovedades[fecha][hora].forEach(novedad => {
+                            const novedadCard = document.createElement('div');
+                            novedadCard.classList.add('novedad-card');
+                            let cardContent = '';
+
+                            // Eliminamos la definición de desiredFields de aquí, ya es global
+                            // const desiredFields = [...]
+
+                            desiredFields.forEach(field => {
+                                let displayValue = novedad[field.key];
+                                let displayLabel = field.label;
+
+                                if (field.key === 'detallesNovedad' && !displayValue) {
+                                    // displayValue = novedad.observaciones; // Fallback eliminado
+                                }
+
+                                if (field.key === 'coordenadas') {
+                                    if (displayValue) {
+                                        const [lat, lng] = displayValue.split(',');
+                                        cardContent += `<p><strong>LATITUD:</strong> ${parseFloat(lat).toFixed(4)}</p>`;
+                                        cardContent += `<p><strong>LONGITUD:</strong> ${parseFloat(lng).toFixed(4)}</p>`;
+                                    } else {
+                                        cardContent += `<p><strong>LATITUD:</strong> N/A</p>`;
+                                        cardContent += `<p><strong>LONGITUD:</strong> N/A</p>`;
+                                    }
+                                } else if (field.key === 'nombreImputado') {
+                                    const valueToDisplay = (displayValue !== undefined && displayValue !== null && displayValue !== '') ? String(displayValue).toUpperCase() : 'N/A';
+                                    cardContent += `<p><strong>${displayLabel}:</strong> <span style="color: red; font-weight: bold;">${valueToDisplay}</span></p>`;
+                                }
+                                else {
+                                    const valueToDisplay = (displayValue !== undefined && displayValue !== null && displayValue !== '') ? String(displayValue).toUpperCase() : 'N/A';
+                                    cardContent += `<p><strong>${displayLabel}:</strong> ${valueToDisplay}</p>`;
+                                }
+                            });
+                            novedadCard.innerHTML = cardContent;
+
+                            if (userRole === 'admin' || userRole === 'JEF.DTAL.TUNUYAN' || userRole === 'JEF.DTAL.SAN CARLOS' || userRole === 'JEF.DTAL.TUPUNGATO') {
+                                const editButton = document.createElement('button');
+                                editButton.textContent = 'Editar';
+                                editButton.classList.add('edit-btn');
+                                editButton.onclick = () => editNovedad(novedad.id);
+                                novedadCard.appendChild(editButton);
+
+                                const deleteButton = document.createElement('button');
+                                deleteButton.textContent = 'Eliminar';
+                                deleteButton.classList.add('delete-btn');
+                                deleteButton.onclick = () => deleteNovedad(novedad.id);
+                                novedadCard.appendChild(deleteButton);
+                            }
+                            // Ya no hay timeSection, adjuntar directamente a novedadesListDiv
+                            novedadesListDiv.appendChild(novedadCard);
+                        });
+                    });
+                });
+            }
+
+            // Función para popular las opciones de los filtros
+            function populateFilters(novedadesData) {
+                const tiposDependencia = new Set();
+
+                novedadesData.forEach(novedad => {
+                    if (novedad.dependencia) {
+                        const tipo = novedad.dependencia.split(' ')[0];
+                        tiposDependencia.add(tipo);
+                    }
+                });
+
+                filterTipoDependenciaSelect.innerHTML = '<option value="">Todos</option>';
+                tiposDependencia.forEach(tipo => {
+                    const option = document.createElement('option');
+                    option.value = tipo;
+                    option.textContent = tipo.toUpperCase();
+                    filterTipoDependenciaSelect.appendChild(option);
+                });
+            }
+
+            fetchNovedades(); // Cargar las novedades desde el backend al iniciar la página
+
+            applyFiltersBtn.addEventListener('click', function() {
+                const filterDate = filterDateInput.value;
+                const filterFechaCarga = document.getElementById('filterFechaCarga').value;
+                const filterStartTime = filterStartTimeInput.value;
+                const filterEndTime = filterEndTimeInput.value;
+                const selectedTipoDependencia = filterTipoDependenciaSelect.value;
+                const filterImputado = filterImputadoInput.value.toLowerCase();
+                const filterVictima = filterVictimaInput.value.toLowerCase();
+
+                let filtered = [...allNovedades];
+                
+                // Aplicar filtro de dependencia según el rol del usuario
+                if (userRole === 'OFICIAL DE 41') {
+                    filtered = filtered.filter(novedad => {
+                        return novedad.dependencia && novedad.dependencia.includes('41');
+                    });
+                } else if (userRole === 'OFICIAL MANZANO HISTORICO') {
+                    filtered = filtered.filter(novedad => {
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_el_manzano');
+                    });
+                } else if (userRole === 'OFICIAL CORDON DEL PLATA') {
+                    filtered = filtered.filter(novedad => {
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_cordon_del_plata');
+                    });
+                } else if (userRole === 'OFICIAL DE SAN JOSE') {
+                    filtered = filtered.filter(novedad => {
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_san_jose');
+                    });
+                } else if (userRole === 'JEF.DTAL.TUNUYAN') {
+                    filtered = filtered.filter(novedad => {
+                        return novedad.dependencia && (
+                            novedad.dependencia.includes('comisaria_15') ||
+                            novedad.dependencia.includes('comisaria_65') ||
+                            novedad.dependencia.includes('subcomisaria_el_manzano')
+                        );
+                    });
+                } else if (userRole === 'JEF.DTAL.SAN CARLOS') {
+                    filtered = filtered.filter(novedad => {
+                        return novedad.dependencia && (
+                            novedad.dependencia.includes('comisaria_18') ||
+                            novedad.dependencia.includes('comisaria_41')
+                        );
+                    });
+                }
+
+                if (filterDate) {
+                    filtered = filtered.filter(novedad => (novedad.fechaDelHecho || novedad.fechaCarga) === filterDate);
+                }
+
+                if (filterFechaCarga) {
+                    filtered = filtered.filter(novedad => novedad.fechaCreacion === filterFechaCarga);
+                }
+
+                if (filterStartTime && filterEndTime) {
+                    filtered = filtered.filter(novedad => {
+                        const novedadTime = novedad.horaCarga;
+                        return novedadTime >= filterStartTime && novedadTime <= filterEndTime;
+                    });
+                } else if (filterStartTime) {
+                    filtered = filtered.filter(novedad => novedad.horaCarga >= filterStartTime);
+                } else if (filterEndTime) {
+                    filtered = filtered.filter(novedad => novedad.horaCarga <= filterEndTime);
+                }
+
+                if (selectedTipoDependencia) {
+                    filtered = filtered.filter(novedad => {
+                        return novedad.dependencia && novedad.dependencia.startsWith(selectedTipoDependencia);
+                    });
+                }
+
+                if (filterImputado) {
+                    filtered = filtered.filter(novedad => {
+                        return novedad.nombreImputado && String(novedad.nombreImputado).toLowerCase().includes(filterImputado);
+                    });
+                }
+
+                if (filterVictima) {
+                    filtered = filtered.filter(novedad => {
+                        return novedad.victima && String(novedad.victima).toLowerCase().includes(filterVictima);
+                    });
+                }
+
+                renderNovedades(filtered);
+            });
+
+            clearFiltersBtn.addEventListener('click', function() {
+                filterDateInput.value = '';
+                filterStartTimeInput.value = '';
+                filterEndTimeInput.value = '';
+                filterTipoDependenciaSelect.value = '';
+                filterImputadoInput.value = '';
+                filterVictimaInput.value = '';
+                document.getElementById('filterFechaCarga').value = '';
+                
+                // Mantener el filtro de dependencia según el rol del usuario
+                if (userRole === 'OFICIAL DE 41') {
+                    const filteredByDependency = allNovedades.filter(novedad => {
+                        return novedad.dependencia && novedad.dependencia.includes('41');
+                    });
+                    renderNovedades(filteredByDependency);
+                } else if (userRole === 'OFICIAL MANZANO HISTORICO') {
+                    const filteredByDependency = allNovedades.filter(novedad => {
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_el_manzano');
+                    });
+                    renderNovedades(filteredByDependency);
+                } else if (userRole === 'OFICIAL CORDON DEL PLATA') {
+                    const filteredByDependency = allNovedades.filter(novedad => {
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_cordon_del_plata');
+                    });
+                    renderNovedades(filteredByDependency);
+                } else if (userRole === 'OFICIAL DE SAN JOSE') {
+                    const filteredByDependency = allNovedades.filter(novedad => {
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_san_jose');
+                    });
+                    renderNovedades(filteredByDependency);
+                } else if (userRole === 'JEF.DTAL.TUNUYAN') {
+                    const filteredByDependency = allNovedades.filter(novedad => {
+                        return novedad.dependencia && (
+                            novedad.dependencia.includes('comisaria_15') ||
+                            novedad.dependencia.includes('comisaria_65') ||
+                            novedad.dependencia.includes('subcomisaria_el_manzano')
+                        );
+                    });
+                    renderNovedades(filteredByDependency);
+                } else if (userRole === 'JEF.DTAL.SAN CARLOS') {
+                    const filteredByDependency = allNovedades.filter(novedad => {
+                        return novedad.dependencia && (
+                            novedad.dependencia.includes('comisaria_18') ||
+                            novedad.dependencia.includes('comisaria_41')
+                        );
+                    });
+                    renderNovedades(filteredByDependency);
+                } else {
+                    renderNovedades(allNovedades); // Renderizar todas las novedades
+                }
+            });
+
+            downloadPdfBtn.addEventListener('click', function() {
+                const element = document.getElementById('novedadesList');
+                const today = new Date();
+                const dateString = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+                const filename = `PARTE DE NOVEDADES_${dateString}.pdf`;
+                html2pdf().from(element).save(filename);
+            });
+
+            downloadExcelBtn.addEventListener('click', function() {
+                const today = new Date();
+                const dateString = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+                const filename = `PARTE DE NOVEDADES_${dateString}`;
+                exportToExcel(currentNovedadesToRender, filename);
+            });
+
+            function exportToExcel(data, filename) {
+                if (data.length === 0) {
+                    alert('No hay datos para exportar a Excel.');
+                    return;
+                }
+
+                const wsData = [];
+                const headers = [];
+
+                // Generar encabezados de columna basándose en desiredFields
+                desiredFields.forEach(field => {
+                    if (field.key === 'coordenadas') {
+                        headers.push('LATITUD');
+                        headers.push('LONGITUD');
+                    } else {
+                        headers.push(field.label);
+                    }
+                });
+                wsData.push(headers);
+
+                // Añadir los datos de cada novedad
+                data.forEach(novedad => {
+                    const row = [];
+                    desiredFields.forEach(field => {
+                        let displayValue = novedad[field.key];
+
+                        if (field.key === 'coordenadas') {
+                            if (displayValue) {
+                                const [lat, lng] = displayValue.split(',');
+                                row.push(parseFloat(lat).toFixed(4));
+                                row.push(parseFloat(lng).toFixed(4));
+                            } else {
+                                row.push('N/A');
+                                row.push('N/A');
+                            }
+                        } else {
+                            const valueToPush = (displayValue !== undefined && displayValue !== null && displayValue !== '') ? String(displayValue).toUpperCase() : 'N/A';
+                            row.push(valueToPush);
+                        }
+                    });
+                    wsData.push(row);
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Novedades');
+                XLSX.writeFile(wb, `${filename}.xlsx`);
+            }
+
+            function deleteNovedad(id) {
+                if (confirm('¿Estás seguro de que quieres eliminar esta novedad? Esta acción no se puede deshacer.')) {
+                    const token = localStorage.getItem('jwtToken');
+                    if (!token) {
+                        alert('No estás autenticado. Por favor, inicia sesión.');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    fetch(`${API_BASE_URL}/novedades/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => {
+                                throw new Error(err.message || 'Error al eliminar la novedad.');
+                            });
+                        }
+                        alert('Novedad eliminada exitosamente.');
+                        fetchNovedades(); // Refresh the list after deletion
+                    })
+                    .catch(error => {
+                        console.error('Error al eliminar novedad:', error);
+                        alert(`Error: ${error.message}`);
+                    });
+                }
+            }
+
+            function editNovedad(id) {
+                window.location.href = `novedades_parte.html?id=${id}`;
+            }
+
+        });
+    </script>
+</body>
+</html>

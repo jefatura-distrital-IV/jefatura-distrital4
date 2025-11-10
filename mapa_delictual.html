@@ -1,0 +1,584 @@
+<!DOCTYPE html>                                                                                                                            
+<html lang="es">                                                                                                                           
+<head>                                                                                                                                     
+    <meta charset="UTF-8">                                                                                                                 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">                                                                 
+    <title>Mapa Delictual</title>                                                                                                          
+    <link rel="stylesheet" href="style.css">                                                                                               
+    <link rel="stylesheet" href="mapa_delictual.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+</head>
+<body>
+    <div class="map-delictual-container">
+        <h1>Mapa Delictual de Novedades</h1>
+        <div class="filters-container">
+
+            <div class="filter-group">
+                <label for="filterDependencia">Dependencia:</label>
+                <select id="filterDependencia" name="filterDependencia">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterLugar">Lugar:</label>
+                <select id="filterLugar" name="filterLugar">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterEncuadreLegal">Encuadre Legal:</label>
+                <input list="filterEncuadreLegalOptions" id="filterEncuadreLegal" name="filterEncuadreLegal">
+                <datalist id="filterEncuadreLegalOptions"></datalist>
+            </div>
+            <div class="filter-group">
+                <label for="filterStartDate">Fecha Inicio:</label>
+                <input type="date" id="filterStartDate">
+            </div>
+            <div class="filter-group">
+                <label for="filterEndDate">Fecha Fin:</label>
+                <input type="date" id="filterEndDate">
+            </div>
+            <div class="filter-group">
+                <label for="filterImputadoMap">Nombre del Imputado:</label>
+                <input type="text" id="filterImputadoMap" placeholder="Filtrar por nombre del imputado">
+            </div>
+            <div class="filter-group">
+                <label for="filterDayTimeInterval">Intervalo del Día:</label>
+                <select id="filterDayTimeInterval">
+                    <option value="">Todos</option>
+                    <option value="madrugada">Madrugada (00:00 - 05:59)</option>
+                    <option value="manana">Mañana (06:00 - 11:59)</option>
+                    <option value="tarde">Tarde (12:00 - 18:59)</option>
+                    <option value="noche">Noche (19:00 - 23:59)</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterDelitosPropiedad">Categoría de Delito:</label>
+                <select id="filterDelitosPropiedad">
+                    <option value="">Todas</option>
+                    <option value="propiedad">Delitos contra la Propiedad</option>
+                </select>
+            </div>
+            <button id="applyMapFiltersBtn">Buscar</button>
+            <button id="clearMapFiltersBtn">Limpiar Filtros</button>
+        </div>
+        <div id="delictualMap"></div>
+        <button onclick="window.history.back()">Volver a la página anterior</button>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // Usar configuración centralizada
+        const API_BASE_URL = Config.API_BASE_URL;
+        let allNovedades = []; // Variable global para almacenar todas las novedades                                                       
+                                                                                                                                           
+        // Definición de los campos deseados para los popups del mapa                                                                      
+        const desiredFieldsMap = [                                                                                                         
+            { key: 'fechaCreacion', label: 'FECHA DE CARGA' },                                                                             
+            { key: 'horaCarga', label: 'HORA DE CARGA' },                                                                                  
+            { key: 'fechaDelHecho', label: 'FECHA DEL HECHO' },                                                                            
+            { key: 'horaDelHecho', label: 'HORA DEL HECHO' },                                                                              
+            { key: 'sumario', label: 'SUMARIO' },                                                                                          
+            { key: 'expediente', label: 'EXPEDIENTE' },                                                                                    
+            { key: 'dependencia', label: 'DEPENDENCIA' },                                                                                  
+            { key: 'encuadreLegal', label: 'ENCUADRE LEGAL' },                                                                             
+            { key: 'detallesNovedad', label: 'DETALLES DE LA NOVEDAD' },                                                                   
+            { key: 'calle', label: 'CALLE' },                                                                                              
+            { key: 'barrio', label: 'BARRIO' },                                                                                            
+            { key: 'coordenadas', label: '' }, // Se manejará como Latitud y Longitud                                                      
+            { key: 'lugar', label: 'LUGAR' },                                                                                              
+            { key: 'bienAfectado', label: 'BIEN AFECTADO' },                                                                               
+            { key: 'victima', label: 'DATOS DE LA VICTIMA' },                                                                              
+            { key: 'nombreImputado', label: 'DATOS DEL IMPUTADO' },                                                                        
+            { key: 'esclarecidos', label: 'ESTADO/SITUACION' }                                                                             
+        ];                                                                                                                                 
+                                                                                                                                           
+        document.addEventListener('DOMContentLoaded', function() {                                                                         
+            const map = L.map('delictualMap').setView([-33.5777777778, -69.0172222222], 12); // Centrado en Tunuyán                        
+                                                                                                                                           
+            // Definir las capas de mapas                                                                                                  
+            const openStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {                                      
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',                    
+                name: 'Mapa Callejero'                                                                                                     
+            });                                                                                                                            
+                                                                                                                                           
+            const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {                                                                                                                                       
+                attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',                                                            
+                name: 'Vista Satelital'                                                                                                    
+            });                                                                                                                            
+                                                                                                                                           
+            // Agregar la capa por defecto                                                                                                 
+            openStreetMap.addTo(map);                                                                                                      
+                                                                                                                                           
+            // Crear control de capas                                                                                                      
+            const baseMaps = {                                                                                                             
+                "Mapa Callejero": openStreetMap,                                                                                           
+                "Vista Satelital": satelliteMap                                                                                            
+            };                                                                                                                             
+                                                                                                                                           
+            L.control.layers(baseMaps).addTo(map);                                                                                         
+                                                                                                                                           
+            let markers = L.featureGroup().addTo(map); // Grupo para gestionar los marcadores                                              
+                                                                                                                                           
+            // Función para obtener el icono según el encuadre legal                                                                       
+            function getIconForEncuadreLegal(encuadreLegal) {                                                                              
+                const iconMap = {                                                                                                          
+                    'ABIGEATO': 'imagenes/ABIGEATO.png',                                                                                   
+                    'ROBO': 'imagenes/ROBO.png',                                                                                           
+                    'HURTO': 'imagenes/HURTO.png',                                                                                         
+                    'HOMICIDIO': 'imagenes/HOMICIDIO.png',                                                                                 
+                    'DAÑO': 'imagenes/DAÑO.png',                                                                                           
+                    'INCENDIO': 'imagenes/INCENDIO.png',                                                                                   
+                    'ESTAFA': 'imagenes/ESTAFA.png',                                                                                       
+                    'VIOLENCIADE GENERO': 'imagenes/VG.png',                                                                               
+                    'HECHO': 'imagenes/HECHO.png',                                                                                         
+                    'ROBO AGRAVADO': 'imagenes/AGRAVADO.png',                                                                              
+                    'HURTO AGRAVADO': 'imagenes/AGRAVADO.png',                                                                             
+                    'ROBO DE VEHICULO': 'imagenes/AUTO.png',                                                                               
+                    'HURTO DE VEHICULO': 'imagenes/AUTO.png',                                                                              
+                    'ROBO DE MOTOVEHICULO': 'imagenes/MOTO.png',                                                                           
+                    'HURTO DE MOTOVEHICULO': 'imagenes/MOTO.png',                                                                          
+                    'ROBO DE BICICLETA': 'imagenes/BICICLETA.png',                                                                         
+                    'HURTO DE BICICLETA': 'imagenes/BICICLETA.png'                                                                         
+                };                                                                                                                         
+                                                                                                                                           
+                const iconPath = iconMap[encuadreLegal];                                                                                   
+                if (iconPath) {                                                                                                            
+                    return L.icon({                                                                                                        
+                        iconUrl: iconPath,                                                                                                 
+                        iconSize: [32, 32],                                                                                                
+                        iconAnchor: [16, 16],                                                                                              
+                        popupAnchor: [0, -16]                                                                                              
+                    });                                                                                                                    
+                }                                                                                                                          
+                                                                                                                                           
+                // Icono por defecto si no se encuentra uno específico                                                                     
+                return L.icon({                                                                                                            
+                    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',                                
+                    iconSize: [25, 41],                                                                                                    
+                    iconAnchor: [12, 41],                                                                                                  
+                    popupAnchor: [1, -34]                                                                                                  
+                });                                                                                                                        
+            }                                                                                                                              
+                                                                                                                                           
+            // Referencias a los elementos del DOM de los filtros                                                                          
+                                                                                                                                           
+            const filterDependenciaSelect = document.getElementById('filterDependencia');                                                  
+            const filterLugarSelect = document.getElementById('filterLugar');                                                              
+            const filterEncuadreLegalInput = document.getElementById('filterEncuadreLegal');                                               
+            const filterEncuadreLegalOptionsDatalist = document.getElementById('filterEncuadreLegalOptions');                              
+            const filterStartDateInput = document.getElementById('filterStartDate');                                                       
+            const filterEndDateInput = document.getElementById('filterEndDate');                                                           
+            const filterImputadoMapInput = document.getElementById('filterImputadoMap'); // Nuevo filtro                                   
+            const filterDayTimeIntervalSelect = document.getElementById('filterDayTimeInterval'); // Nuevo filtro
+            const filterDelitosPropiedadSelect = document.getElementById('filterDelitosPropiedad'); // Nuevo filtro
+            const applyMapFiltersBtn = document.getElementById('applyMapFiltersBtn');
+            const clearMapFiltersBtn = document.getElementById('clearMapFiltersBtn');
+
+            // Fetch novedades from API
+            function fetchNovedades() {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    alert('No estás autenticado. Por favor, inicia sesión.');                                                              
+                    window.location.href = 'index.html';                                                                                   
+                    return;                                                                                                                
+                }                                                                                                                          
+                                                                                                                                           
+                fetch(`${API_BASE_URL}/novedades`, {                                                                                       
+                    headers: {                                                                                                             
+                        'Authorization': `Bearer ${token}`                                                                                 
+                    }                                                                                                                      
+                })                                                                                                                         
+                .then(response => {                                                                                                        
+                    if (!response.ok) {                                                                                                    
+                        return response.json().then(err => {                                                                               
+                            throw new Error(err.message || 'Error al cargar las novedades.');                                              
+                        });                                                                                                                
+                    }                                                                                                                      
+                    return response.json();                                                                                                
+                })                                                                                                                         
+                .then(data => {                                                                                                            
+                    allNovedades = data; // Store fetched data globally                                                                    
+                                                                                                                                           
+                    // Filtrar por dependencia según el rol del usuario                                                                    
+                    const userRole = localStorage.getItem('userRole');                                                                     
+                    if (userRole === 'OFICIAL DE 41') {                                                                                    
+                        allNovedades = allNovedades.filter(novedad => {                                                                    
+                            return novedad.dependencia && novedad.dependencia.includes('41');                                              
+                        });                                                                                                                
+                    } else if (userRole === 'OFICIAL MANZANO HISTORICO') {                                                                 
+                        allNovedades = allNovedades.filter(novedad => {                                                                    
+                            return novedad.dependencia && novedad.dependencia.includes('subcomisaria_el_manzano');                         
+                        });                                                                                                                
+                    } else if (userRole === 'OFICIAL CORDON DEL PLATA') {                                                                  
+                        allNovedades = allNovedades.filter(novedad => {                                                                    
+                            return novedad.dependencia && novedad.dependencia.includes('subcomisaria_cordon_del_plata');                   
+                        });                                                                                                                
+                    } else if (userRole === 'OFICIAL DE SAN JOSE') {                                                                       
+                        allNovedades = allNovedades.filter(novedad => {                                                                    
+                            return novedad.dependencia && novedad.dependencia.includes('subcomisaria_san_jose');                           
+                        });                                                                                                                
+                    } else if (userRole === 'JEF.DTAL.TUNUYAN') {                                                                          
+                        allNovedades = allNovedades.filter(novedad => {                                                                    
+                            return novedad.dependencia && (                                                                                
+                                novedad.dependencia.includes('comisaria_15') ||                                                            
+                                novedad.dependencia.includes('comisaria_65') ||                                                            
+                                novedad.dependencia.includes('subcomisaria_el_manzano')                                                    
+                            );                                                                                                             
+                        });                                                                                                                
+                    } else if (userRole === 'JEF.DTAL.SAN CARLOS') {                                                                       
+                        allNovedades = allNovedades.filter(novedad => {                                                                    
+                            return novedad.dependencia && (                                                                                
+                                novedad.dependencia.includes('comisaria_18') ||                                                            
+                                novedad.dependencia.includes('comisaria_41')                                                               
+                            );                                                                                                             
+                        });                                                                                                                
+                    }                                                                                                                      
+                                                                                                                                           
+                    populateFilters(); // Populate filters with fetched data                                                               
+                    renderMapMarkers(allNovedades); // Render initial markers                                                              
+                })                                                                                                                         
+                .catch(error => {                                                                                                          
+                    console.error('Error al obtener novedades:', error);                                                                   
+                    alert(`Error: ${error.message}`);                                                                                      
+                });                                                                                                                        
+            }                                                                                                                              
+                                                                                                                                           
+            // Initial fetch when DOM is loaded                                                                                            
+            fetchNovedades();                                                                                                              
+                                                                                                                                           
+            // Función para popular las opciones de los filtros                                                                            
+            function populateFilters() {                                                                                                   
+                                                                                                                                           
+                const dependencias = new Set();                                                                                            
+                const lugares = new Set();                                                                                                 
+                const encuadresLegales = new Set();                                                                                        
+                                                                                                                                           
+                allNovedades.forEach(novedad => {                                                                                          
+                                                                                                                                           
+                    if (novedad.dependencia) dependencias.add(novedad.dependencia);                                                        
+                    if (novedad.lugar) lugares.add(novedad.lugar);                                                                         
+                    if (novedad.encuadreLegal) encuadresLegales.add(novedad.encuadreLegal);                                                
+                });                                                                                                                        
+                                                                                                                                           
+                                                                                                                                           
+                                                                                                                                           
+                                                                                                                                           
+                filterDependenciaSelect.innerHTML = '<option value="">Todas</option>';                                                     
+                Array.from(dependencias).sort().forEach(dep => {                                                                           
+                    const option = document.createElement('option');                                                                       
+                    option.value = dep;                                                                                                    
+                    option.textContent = dep.toUpperCase();                                                                                
+                    filterDependenciaSelect.appendChild(option);                                                                           
+                });                                                                                                                        
+                                                                                                                                           
+                                                                                                                                           
+                filterLugarSelect.innerHTML = '<option value="">Todos</option>';                                                           
+                Array.from(lugares).sort().forEach(lug => {                                                                                
+                    const option = document.createElement('option');                                                                       
+                    option.value = lug;                                                                                                    
+                    option.textContent = lug.toUpperCase();                                                                                
+                    filterLugarSelect.appendChild(option);                                                                                 
+                });                                                                                                                        
+                                                                                                                                           
+                                                                                                                                           
+                filterEncuadreLegalOptionsDatalist.innerHTML = '';                                                                         
+                Array.from(encuadresLegales).sort().forEach(enc => {                                                                       
+                    const option = document.createElement('option');                                                                       
+                    option.value = enc;                                                                                                    
+                    filterEncuadreLegalOptionsDatalist.appendChild(option);                                                                
+                });                                                                                                                        
+                                                                                                                                           
+                // The dayTimeIntervals set was removed, so this loop is no longer needed.                                                 
+                // The options for Intervalo del Día are now hardcoded in the HTML.                                                        
+            }                                                                                                                              
+                                                                                                                                           
+            // Función para renderizar marcadores en el mapa                                                                               
+            function renderMapMarkers(novedadesToRender) {                                                                                 
+                markers.clearLayers(); // Limpiar marcadores existentes                                                                    
+                                                                                                                                           
+                novedadesToRender.forEach(novedad => {                                                                                     
+                    if (novedad.coordenadas) { // Verificar si existen coordenadas                                                         
+                        const [latStr, lngStr] = novedad.coordenadas.split(',');                                                           
+                        const lat = parseFloat(latStr);                                                                                    
+                        const lng = parseFloat(lngStr);                                                                                    
+                                                                                                                                           
+                        if (!isNaN(lat) && !isNaN(lng)) { // Asegurarse de que son números válidos                                         
+                            const latlng = L.latLng(lat, lng);                                                                             
+                                                                                                                                           
+                            let popupContent = '<b>Novedad Registrada</b><br>';                                                            
+                            desiredFieldsMap.forEach(field => {                                                                            
+                                let displayValue = novedad[field.key];                                                                     
+                                let displayLabel = field.label;                                                                            
+                                                                                                                                           
+                                if (field.key === 'detallesNovedad' && !displayValue) {                                                    
+                                    // displayValue = novedad.observaciones; // Fallback eliminado                                         
+                                }                                                                                                          
+                                                                                                                                           
+                                if (field.key === 'coordenadas') {                                                                         
+                                    if (novedad.coordenadas) {                                                                             
+                                        const [c_lat, c_lng] = novedad.coordenadas.split(',');                                             
+                                        popupContent += `<p><strong>LATITUD:</strong> ${parseFloat(c_lat).toFixed(4)}</p>`;                
+                                        popupContent += `<p><strong>LONGITUD:</strong> ${parseFloat(c_lng).toFixed(4)}</p>`;               
+                                    } else {                                                                                               
+                                        popupContent += `<p><strong>LATITUD:</strong> N/A</p>`;                                            
+                                        popupContent += `<p><strong>LONGITUD:</strong> N/A</p>`;                                           
+                                    }                                                                                                      
+                                } else if (field.key === 'nombreImputado') {                                                               
+                                    const valueToDisplay = (displayValue !== undefined && displayValue !== null && displayValue !== '') ? String(displayValue).toUpperCase() : 'N/A';                                                                                                 
+                                    popupContent += `<p><strong>${displayLabel}:</strong> <span style="color: red; font-weight: bold;">${valueToDisplay}</span></p>`;                                                                                                                 
+                                } else {                                                                                                   
+                                    const valueToDisplay = (displayValue !== undefined && displayValue !== null && displayValue !== '') ? String(displayValue).toUpperCase() : 'N/A';                                                                                                 
+                                    if (displayLabel) { // Solo añadir si hay un label para mostrar                                        
+                                        popupContent += `<p><strong>${displayLabel}:</strong> ${valueToDisplay}</p>`;                      
+                                    }                                                                                                      
+                                }                                                                                                          
+                            });                                                                                                            
+                                                                                                                                           
+                            // Obtener el icono apropiado según el encuadre legal                                                          
+                            const customIcon = getIconForEncuadreLegal(novedad.encuadreLegal);                                             
+                                                                                                                                           
+                            L.marker(latlng, { icon: customIcon }).addTo(markers)                                                          
+                                .bindPopup(popupContent);                                                                                  
+                        }                                                                                                                  
+                    }                                                                                                                      
+                });                                                                                                                        
+            }                                                                                                                              
+                                                                                                                                           
+            // Inicializar filtros y mostrar todas las novedades al cargar                                                                 
+            // populateFilters(); // Se llama dentro de fetchNovedades                                                                     
+            // renderMapMarkers(allNovedades); // Se llama dentro de fetchNovedades                                                        
+                                                                                                                                           
+            // Evento para aplicar filtros                                                                                                 
+            applyMapFiltersBtn.addEventListener('click', function() {                                                                      
+                                                                                                                                           
+                const selectedDependencia = filterDependenciaSelect.value;                                                                 
+                const selectedLugar = filterLugarSelect.value;                                                                             
+                const selectedEncuadreLegal = filterEncuadreLegalInput.value;                                                              
+                const startDate = filterStartDateInput.value;                                                                              
+                const endDate = filterEndDateInput.value;                                                                                  
+                const filterImputadoMap = filterImputadoMapInput.value.toLowerCase(); // Nuevo filtro                                      
+                const filterDayTimeInterval = filterDayTimeIntervalSelect.value; // Nuevo filtro                                           
+                const selectedDelitosPropiedad = filterDelitosPropiedadSelect.value; // Nuevo filtro
+                                                                                                                                           
+                let filteredNovedades = [...allNovedades];                                                                                 
+                                                                                                                                           
+                // Aplicar filtro de dependencia según el rol del usuario                                                                  
+                const userRole = localStorage.getItem('userRole');                                                                         
+                if (userRole === 'OFICIAL DE 41') {                                                                                        
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        return novedad.dependencia && novedad.dependencia.includes('41');                                                  
+                    });                                                                                                                    
+                } else if (userRole === 'OFICIAL MANZANO HISTORICO') {                                                                     
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_el_manzano');                             
+                    });                                                                                                                    
+                } else if (userRole === 'OFICIAL CORDON DEL PLATA') {                                                                      
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_cordon_del_plata');                       
+                    });                                                                                                                    
+                } else if (userRole === 'OFICIAL DE SAN JOSE') {                                                                           
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_san_jose');                               
+                    });                                                                                                                    
+                } else if (userRole === 'JEF.DTAL.TUNUYAN') {                                                                              
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        return novedad.dependencia && (                                                                                    
+                            novedad.dependencia.includes('comisaria_15') ||                                                                
+                            novedad.dependencia.includes('comisaria_65') ||                                                                
+                            novedad.dependencia.includes('subcomisaria_el_manzano')                                                        
+                        );                                                                                                                 
+                    });                                                                                                                    
+                } else if (userRole === 'JEF.DTAL.SAN CARLOS') {                                                                           
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        return novedad.dependencia && (                                                                                    
+                            novedad.dependencia.includes('comisaria_18') ||                                                                
+                            novedad.dependencia.includes('comisaria_41')                                                                   
+                        );                                                                                                                 
+                    });                                                                                                                    
+                }                                                                                                                          
+                                                                                                                                           
+                                                                                                                                           
+                if (selectedDependencia) {                                                                                                 
+                    filteredNovedades = filteredNovedades.filter(novedad => novedad.dependencia === selectedDependencia);                  
+                }                                                                                                                          
+                if (selectedLugar) {                                                                                                       
+                    filteredNovedades = filteredNovedades.filter(novedad => novedad.lugar === selectedLugar);                              
+                }                                                                                                                          
+                
+                // Lógica de filtrado para "Delitos contra la Propiedad" y "Encuadre Legal" individual
+                if (selectedDelitosPropiedad === 'propiedad') {
+                    const delitosPropiedad = ['ROBO', 'ROBO AGRAVADO', 'HURTO', 'HURTO AGRAVADO', 'ESTAFA', 'USURPACION', 'DAÑO', 'EXTORSION'];
+                    filteredNovedades = filteredNovedades.filter(novedad => {
+                        return novedad.encuadreLegal && delitosPropiedad.includes(novedad.encuadreLegal.toUpperCase());
+                    });
+                } else if (selectedEncuadreLegal) {
+                    filteredNovedades = filteredNovedades.filter(novedad => novedad.encuadreLegal === selectedEncuadreLegal);
+                }
+                                                                                                                                           
+                // Filtrar por rango de fechas (usando fechaDelHecho o fechaCreacion)                                                      
+                if (startDate) {                                                                                                           
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        const fechaNovedad = novedad.fechaDelHecho || novedad.fechaCreacion;                                               
+                        return fechaNovedad && fechaNovedad >= startDate;                                                                  
+                    });                                                                                                                    
+                }                                                                                                                          
+                if (endDate) {                                                                                                             
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        const fechaNovedad = novedad.fechaDelHecho || novedad.fechaCreacion;                                               
+                        return fechaNovedad && fechaNovedad <= endDate;                                                                    
+                    });                                                                                                                    
+                }                                                                                                                          
+                                                                                                                                           
+                // Nuevo filtro por Nombre del Imputado                                                                                    
+                if (filterImputadoMap) {                                                                                                   
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        return novedad.nombreImputado && String(novedad.nombreImputado).toLowerCase().includes(filterImputadoMap);         
+                    });                                                                                                                    
+                }                                                                                                                          
+                                                                                                                                           
+                // Nuevo filtro por Intervalo del Día (usando horaDelHecho o horaCarga)                                                    
+                if (filterDayTimeInterval) {                                                                                               
+                    filteredNovedades = filteredNovedades.filter(novedad => {                                                              
+                        const novedadTime = novedad.horaDelHecho || novedad.horaCarga;                                                     
+                        if (!novedadTime) return false;                                                                                    
+                                                                                                                                           
+                        const [hours, minutes] = novedadTime.split(':').map(Number);                                                       
+                        const totalMinutes = hours * 60 + minutes;                                                                         
+                                                                                                                                           
+                        switch (filterDayTimeInterval) {                                                                                   
+                            case 'madrugada':                                                                                              
+                                return totalMinutes >= (0 * 60) && totalMinutes < (6 * 60); // 00:00 - 05:59                               
+                            case 'manana':                                                                                                 
+                                return totalMinutes >= (6 * 60) && totalMinutes < (12 * 60); // 06:00 - 11:59                              
+                            case 'tarde':                                                                                                  
+                                return totalMinutes >= (12 * 60) && totalMinutes < (19 * 60); // 12:00 - 18:59                             
+                            case 'noche':                                                                                                  
+                                return totalMinutes >= (19 * 60) && totalMinutes <= (23 * 60 + 59); // 19:00 - 23:59                       
+                            default:                                                                                                       
+                                return true;                                                                                               
+                        }                                                                                                                  
+                    });                                                                                                                    
+                }                                                                                                                          
+                                                                                                                                           
+                renderMapMarkers(filteredNovedades);                                                                                       
+            });                                                                                                                            
+            
+            // Event listeners para asegurar que solo un filtro de encuadre legal esté activo
+            filterDelitosPropiedadSelect.addEventListener('change', function() {
+                if (this.value === 'propiedad') {
+                    filterEncuadreLegalInput.value = ''; // Limpiar el filtro individual si se selecciona "Delitos contra la Propiedad"
+                }
+            });
+
+            filterEncuadreLegalInput.addEventListener('change', function() {
+                if (this.value !== '') {
+                    filterDelitosPropiedadSelect.value = ''; // Limpiar el filtro de categoría si se selecciona un encuadre individual
+                }
+            });
+                                                                                                                                           
+            // Evento para limpiar filtros                                                                                                 
+            clearMapFiltersBtn.addEventListener('click', function() {                                                                      
+                                                                                                                                           
+                filterDependenciaSelect.value = '';                                                                                        
+                filterLugarSelect.value = '';                                                                                              
+                filterEncuadreLegalInput.value = '';                                                                                       
+                filterStartDateInput.value = '';                                                                                           
+                filterEndDateInput.value = '';                                                                                             
+                filterImputadoMapInput.value = ''; // Limpiar nuevo filtro                                                                 
+                filterDayTimeIntervalSelect.value = ''; // Limpiar nuevo filtro                                                            
+                filterDelitosPropiedadSelect.value = ''; // Limpiar nuevo filtro
+                                                                                                                                           
+                // Mantener el filtro de dependencia según el rol del usuario                                                              
+                const userRole = localStorage.getItem('userRole');                                                                         
+                if (userRole === 'OFICIAL DE 41') {                                                                                        
+                    const filteredByDependency = allNovedades.filter(novedad => {                                                          
+                        return novedad.dependencia && novedad.dependencia.includes('41');                                                  
+                    });                                                                                                                    
+                    renderMapMarkers(filteredByDependency);                                                                                
+                } else if (userRole === 'OFICIAL MANZANO HISTORICO') {                                                                     
+                    const filteredByDependency = allNovedades.filter(novedad => {                                                          
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_el_manzano');                             
+                    });                                                                                                                    
+                    renderMapMarkers(filteredByDependency);                                                                                
+                } else if (userRole === 'OFICIAL CORDON DEL PLATA') {                                                                      
+                    const filteredByDependency = allNovedades.filter(novedad => {                                                          
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_cordon_del_plata');                       
+                    });                                                                                                                    
+                    renderMapMarkers(filteredByDependency);                                                                                
+                } else if (userRole === 'OFICIAL DE SAN JOSE') {                                                                           
+                    const filteredByDependency = allNovedades.filter(novedad => {                                                          
+                        return novedad.dependencia && novedad.dependencia.includes('subcomisaria_san_jose');                               
+                    });                                                                                                                    
+                    renderMapMarkers(filteredByDependency);                                                                                
+                } else if (userRole === 'JEF.DTAL.TUNUYAN') {                                                                              
+                    const filteredByDependency = allNovedades.filter(novedad => {                                                          
+                        return novedad.dependencia && (                                                                                    
+                            novedad.dependencia.includes('comisaria_15') ||                                                                
+                            novedad.dependencia.includes('comisaria_65') ||                                                                
+                            novedad.dependencia.includes('subcomisaria_el_manzano')                                                        
+                        );                                                                                                                 
+                    });                                                                                                                    
+                    renderMapMarkers(filteredByDependency);                                                                                
+                } else if (userRole === 'JEF.DTAL.SAN CARLOS') {                                                                           
+                    const filteredByDependency = allNovedades.filter(novedad => {                                                          
+                        return novedad.dependencia && (                                                                                    
+                            novedad.dependencia.includes('comisaria_18') ||                                                                
+                            novedad.dependencia.includes('comisaria_41')                                                                   
+                        );                                                                                                                 
+                    });                                                                                                                    
+                    renderMapMarkers(filteredByDependency);                                                                                
+                } else {                                                                                                                   
+                    renderMapMarkers(allNovedades); // Mostrar todas las novedades de nuevo                                                
+                }
+            });
+
+            // Añadir el control de geolocalización de Leaflet después de que el mapa esté completamente inicializado
+            setTimeout(() => {
+                L.control.locate({
+                    position: 'topleft',
+                    strings: {
+                        title: "Localizar mi ubicación"
+                    },
+                    locateOptions: {
+                        maxZoom: 16,
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 60000
+                    },
+                    onLocationError: function(err) {
+                        console.error('Error de geolocalización:', err);
+
+                        let errorMessage = '';
+                        switch(err.code) {
+                            case err.PERMISSION_DENIED:
+                                errorMessage = 'Permiso de geolocalización denegado. Por favor, permite el acceso a tu ubicación en la configuración del navegador.';
+                                break;
+                            case err.POSITION_UNAVAILABLE:
+                                errorMessage = 'Ubicación no disponible. Verifica que el GPS esté activado.';
+                                break;
+                            case err.TIMEOUT:
+                                errorMessage = 'Tiempo de espera agotado. Intenta nuevamente.';
+                                break;
+                            default:
+                                errorMessage = 'Error al obtener tu ubicación: ' + err.message;
+                                break;
+                        }
+                        alert(errorMessage);
+                    },
+                    onLocationOutsideMapBounds: function(lc) {
+                        lc.stop();
+                        alert("Tu ubicación está fuera del área del mapa actual.");
+                    },
+                    flyTo: true, // Animación para volar a la ubicación
+                    showPopup: true, // Mostrar un popup con la ubicación
+                    drawCircle: true, // Dibujar un círculo de precisión
+                }).addTo(map);
+            }, 100);
+        });
+    </script>
+</body>
+</html>

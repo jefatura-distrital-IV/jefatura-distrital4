@@ -1,0 +1,126 @@
+/* Estilos específicos para novedades_parte.html */
+
+.form-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 95%; /* Aumentar el ancho del contenedor */
+    max-width: 1400px; /* Aumentar el ancho máximo */
+    text-align: center;
+    margin-top: 20px;
+}
+
+.layout-row {
+    grid-column: 1 / -1; /* Ocupa todas las columnas del grid principal */
+    display: flex;
+    gap: 20px; /* Aumentar el espacio entre los elementos */
+    align-items: flex-start; /* Alinea los elementos en la parte superior */
+    margin-bottom: 15px; /* Margen inferior para separar del siguiente grupo */
+}
+
+.layout-row .input-group {
+    flex: 1; /* Distribuye el espacio equitativamente */
+    margin-bottom: 0; /* Eliminar el margen inferior si ya hay gap */
+}
+
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 30px; /* Aumentado el espacio entre los elementos */
+    flex: 1; /* Para que ocupe el mismo ancho que la columna del mapa */
+}
+
+.form-container form {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas de igual ancho */
+    gap: 15px; /* Espacio entre los casilleros */
+}
+
+.form-container h1 {
+    grid-column: 1 / -1; /* Ocupa todas las columnas */
+    margin-bottom: 20px;
+}
+
+.form-container .input-group {
+    margin-bottom: 0; /* Eliminar el margen inferior si ya hay gap */
+    text-align: left;
+}
+
+.form-container .input-group.full-width {
+    grid-column: 1 / -1; /* Para campos que queremos que ocupen todo el ancho */
+}
+
+.form-container label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.form-container input[type="text"],
+.form-container input[type="date"],
+.form-container input[type="time"],
+.form-container textarea,
+.form-container input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#map {
+    border: 1px solid #ddd;
+    height: 400px; /* Aumentar la altura del mapa */
+    width: 100%;
+    border-radius: 4px;
+}
+
+.coords-display {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.coords-display > div {
+    flex: 1;
+}
+
+.form-container button[type="submit"],
+.form-container button[type="button"] {
+    grid-column: 1 / -1; /* Los botones ocupan todo el ancho */
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    width: auto; /* Ajustar el ancho del botón */
+    margin-top: 10px;
+    justify-self: center; /* Centrar los botones en el grid */
+    align-self: center; /* Centrar los botones en el grid */
+}
+
+.form-container button[type="submit"]:hover,
+.form-container button[type="button"]:hover {
+    background-color: #0056b3;
+}
+
+.form-container button[type="button"] {
+    background-color: #6c757d;
+}
+
+.form-container button[type="button"]:hover {
+    background-color: #5a6268;
+}
+
+#actualizarMapaBtn {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Página</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="main-header">
+        <img src="imagenes/ESCUDO POLI.jpg" alt="Escudo Policía" class="header-icon">
+        <h1>JEFATURA - DISTRITAL 4</h1>
+        <div id="authStatus">
+            <p>Bienvenido, <span id="loggedInUsernameDisplay"></span> (<span id="userRoleDisplay"></span>)</p>
+            <button id="logoutBtn">Cerrar Sesión</button>
+        </div>
+    </header>
+    <div class="login-container">
+        <form>
+            <div class="input-group">
+                <label for="username">Usuario:</label>
+                <input type="text" id="username" name="username">
+            </div>
+            <div class="input-group">
+                <label for="password">Contraseña:</label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="password" name="password">
+                    <input type="checkbox" id="showPassword">
+                    <label for="showPassword">Mostrar Contraseña</label>
+                </div>
+            </div>
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // Lógica para mostrar/ocultar elementos y manejar el logout (ahora solo en index.html)
+        document.addEventListener('DOMContentLoaded', () => {
+            const jwtToken = localStorage.getItem('jwtToken');
+            const loggedInUsername = localStorage.getItem('loggedInUsername');
+            const userRole = localStorage.getItem('userRole');
+
+            const authStatusDiv = document.getElementById('authStatus');
+            const loginContainer = document.querySelector('.login-container');
+            const loggedInUsernameDisplay = document.getElementById('loggedInUsernameDisplay');
+            const userRoleDisplay = document.getElementById('userRoleDisplay');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (jwtToken && loggedInUsername && userRole) {
+                loginContainer.style.display = 'none';
+                authStatusDiv.style.display = 'block';
+                loggedInUsernameDisplay.textContent = loggedInUsername;
+                userRoleDisplay.textContent = userRole;
+                window.location.href = "dashboard.html"; // Redirigir al dashboard si ya está logueado
+
+            } else {
+                loginContainer.style.display = 'block';
+                authStatusDiv.style.display = 'none';
+            }
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    localStorage.removeItem('jwtToken');
+                    localStorage.removeItem('loggedInUsername');
+                    localStorage.removeItem('userRole');
+                    window.location.reload(); // Recargar la página
+                });
+            }
+        });
+
+        // Login form submission handler
+        var loginForm = document.querySelector(".login-container form");
+        var loginUsername = document.getElementById("username");
+        var loginPassword = document.getElementById("password");
+        var showPasswordCheckbox = document.getElementById("showPassword");
+
+        // Toggle password visibility
+        if (showPasswordCheckbox) {
+            showPasswordCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    loginPassword.type = "text";
+                } else {
+                    loginPassword.type = "password";
+                }
+            });
+        }
+
+        loginForm.onsubmit = async function(event) {
+            event.preventDefault(); // Prevent actual form submission
+
+            const username = loginUsername.value;
+            const password = loginPassword.value;
+
+            try {
+                // Usar apiRequest helper para mejor manejo de errores
+                const data = await apiRequest('/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ username, password })
+                });
+
+                // Si llegamos aquí, el login fue exitoso
+                localStorage.setItem(Config.TOKEN_KEY, data.token);
+                // Decodificar el token para obtener el rol y el nombre de usuario
+                const base64Url = data.token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const payload = JSON.parse(window.atob(base64));
+                localStorage.setItem(Config.USER_ROLE_KEY, payload.role);
+                localStorage.setItem(Config.USERNAME_KEY, payload.username);
+                localStorage.setItem(Config.USER_ID_KEY, payload.id);
+
+                alert("Inicio de sesión exitoso!");
+                window.location.href = "dashboard.html";
+            } catch (error) {
+                alert(error.message || "Error al iniciar sesión. Verifica tus credenciales.");
+            }
+        };
+    </script>
+
+    <div class="contact-info">
+        NUMERO DE CONTACTO: 2622-424097
+    </div>
+
+</body>
+</html>

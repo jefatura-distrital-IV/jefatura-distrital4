@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="estadisticas.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="statistics-container">
+        <h1>Estadísticas de Novedades</h1>
+
+        <div class="filters-container">
+            
+            <div class="filter-group">
+                <label for="filterDependencia">Dependencia:</label>
+                <select id="filterDependencia" name="filterDependencia">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterLugar">Lugar:</label>
+                <select id="filterLugar" name="filterLugar">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterEncuadreLegal">Encuadre Legal:</label>
+                <input list="filterEncuadreLegalOptions" id="filterEncuadreLegal" name="filterEncuadreLegal">
+                <datalist id="filterEncuadreLegalOptions"></datalist>
+            </div>
+            <div class="filter-group">
+                <label for="filterImputadoStats">Nombre del Imputado:</label>
+                <input type="text" id="filterImputadoStats" placeholder="Filtrar por nombre del imputado">
+            </div>
+            <div class="filter-group">
+                <label for="filterVictimaStats">Datos de la Víctima:</label>
+                <input type="text" id="filterVictimaStats" placeholder="Filtrar por víctima">
+            </div>
+            <div class="filter-group">
+                <label for="filterStartDate">Fecha Inicio:</label>
+                <input type="date" id="filterStartDate">
+            </div>
+            <div class="filter-group">
+                <label for="filterEndDate">Fecha Fin:</label>
+                <input type="date" id="filterEndDate">
+            </div>
+            <div class="filter-group">
+                <label for="filterDayTimeInterval">Intervalo del Día:</label>
+                <select id="filterDayTimeInterval">
+                    <option value="">Todos</option>
+                    <option value="madrugada">Madrugada (00:00 - 05:59)</option>
+                    <option value="manana">Mañana (06:00 - 11:59)</option>
+                    <option value="tarde">Tarde (12:00 - 18:59)</option>
+                    <option value="noche">Noche (19:00 - 23:59)</option>
+                </select>
+            </div>
+            <button id="applyStatsFiltersBtn">Aplicar Filtros</button>
+            <button id="clearStatsFiltersBtn">Limpiar Filtros</button>
+        </div>
+
+        <div id="statisticsContent">
+            <p>Seleccione los filtros y haga clic en "Aplicar Filtros" para ver las estadísticas.</p>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="novedadesChart"></canvas>
+        </div>
+
+        <button onclick="window.history.back()">Volver a la página anterior</button>
+    </div>
+    <script src="config.js"></script>
+    <script>
+        // Usar configuración centralizada
+        const API_BASE_URL = Config.API_BASE_URL;
+        let allNovedades = []; // Variable global para almacenar todas las novedades
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // const allNovedades = JSON.parse(localStorage.getItem('novedades')) || []; // REMOVED
+            const statisticsContentDiv = document.getElementById('statisticsContent');
+
+            
+            const filterDependenciaSelect = document.getElementById('filterDependencia');
+            const filterLugarSelect = document.getElementById('filterLugar');
+            const filterEncuadreLegalInput = document.getElementById('filterEncuadreLegal');
+            const filterEncuadreLegalOptionsDatalist = document.getElementById('filterEncuadreLegalOptions');
+            const filterStartDateInput = document.getElementById('filterStartDate');
+            const filterEndDateInput = document.getElementById('filterEndDate');
+            const filterImputadoStatsInput = document.getElementById('filterImputadoStats');
+            const filterVictimaStatsInput = document.getElementById('filterVictimaStats');
+            const filterDayTimeIntervalSelect = document.getElementById('filterDayTimeInterval'); // Nuevo selector de intervalo del día
+            const applyStatsFiltersBtn = document.getElementById('applyStatsFiltersBtn');
+            const clearStatsFiltersBtn = document.getElementById('clearStatsFiltersBtn');
+
+            let novedadesChartInstance; // Variable para almacenar la instancia del gráfico
+
+            // Fetch novedades from API
+            function fetchNovedades() {
+                const token = localStorage.getItem('jwtToken');
+                if (!token) {
+                    alert('No estás autenticado. Por favor, inicia sesión.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                fetch(`${API_BASE_URL}/novedades`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.message || 'Error al cargar las novedades.');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    allNovedades = data; // Store fetched data globally
+                    populateFilters(); // Populate filters with fetched data
+                    renderStatistics(allNovedades); // Render initial statistics
+                })
+                .catch(error => {
+                    console.error('Error al obtener novedades:', error);
+                    alert(`Error: ${error.message}`);
+                });
+            }
+
+            // Initial fetch when DOM is loaded
+            fetchNovedades();
+
+            // Función para popular las opciones de los filtros
+            function populateFilters() {
+                
+                const dependencias = new Set();
+                const lugares = new Set();
+                const encuadresLegales = new Set();
+
+                allNovedades.forEach(novedad => {
+                    
+                    if (novedad.dependencia) dependencias.add(novedad.dependencia);
+                    if (novedad.lugar) lugares.add(novedad.lugar);
+                    if (novedad.encuadreLegal) encuadresLegales.add(novedad.encuadreLegal);
+                });
+
+                // Llenar select de Departamentos
+                
+                
+                // Llenar select de Dependencias
+                dependencias.forEach(dep => {
+                    const option = document.createElement('option');
+                    option.value = dep;
+                    option.textContent = dep.toUpperCase();
+                    filterDependenciaSelect.appendChild(option);
+                });
+
+                // Llenar select de Lugares
+                lugares.forEach(lug => {
+                    const option = document.createElement('option');
+                    option.value = lug;
+                    option.textContent = lug.toUpperCase();
+                    filterLugarSelect.appendChild(option);
+                });
+
+                // Llenar datalist de Encuadre Legal
+                encuadresLegales.forEach(enc => {
+                    const option = document.createElement('option');
+                    option.value = enc;
+                    filterEncuadreLegalOptionsDatalist.appendChild(option);
+                });
+            }
+
+            // Función para renderizar estadísticas y el gráfico (modificada para aceptar agrupaciones)
+            function renderStatistics(novedadesToRender, dayInterval = null) {
+                statisticsContentDiv.innerHTML = ''; // Limpiar el contenido actual
+
+                let dataForCharts = {};
+                let chartTitlePrefix = 'Conteo de Novedades por ';
+                let chartXAxisTitle = '';
+
+                if (dayInterval) {
+                    // Group by day interval and then by encuadre legal
+                    const groupedByDayAndEncuadre = {};
+                    novedadesToRender.forEach(novedad => {
+                        const novedadTime = novedad.horaDelHecho;
+                        if (!novedadTime) return;
+
+                        const [hours, minutes] = novedadTime.split(':').map(Number);
+                        const totalMinutes = hours * 60 + minutes;
+
+                        let dayPart = 'Desconocido';
+                        if (totalMinutes >= (0 * 60) && totalMinutes < (6 * 60)) {
+                            dayPart = 'Madrugada';
+                        } else if (totalMinutes >= (6 * 60) && totalMinutes < (12 * 60)) {
+                            dayPart = 'Mañana';
+                        } else if (totalMinutes >= (12 * 60) && totalMinutes < (19 * 60)) {
+                            dayPart = 'Tarde';
+                        } else if (totalMinutes >= (19 * 60) && totalMinutes <= (23 * 60 + 59)) {
+                            dayPart = 'Noche';
+                        }
+
+                        const enc = novedad.encuadreLegal || 'Desconocido';
+
+                        if (!groupedByDayAndEncuadre[dayPart]) {
+                            groupedByDayAndEncuadre[dayPart] = {};
+                        }
+                        groupedByDayAndEncuadre[dayPart][enc] = (groupedByDayAndEncuadre[dayPart][enc] || 0) + 1;
+                    });
+                    dataForCharts = groupedByDayAndEncuadre;
+                    chartTitlePrefix += 'Intervalo del Día y Encuadre Legal';
+                    chartXAxisTitle = 'Intervalo del Día';
+                } else {
+                    // Default to grouping by Encuadre Legal
+                    const encuadreLegalCounts = {};
+                    novedadesToRender.forEach(novedad => {
+                        const enc = novedad.encuadreLegal || 'Desconocido';
+                        encuadreLegalCounts[enc] = (encuadreLegalCounts[enc] || 0) + 1;
+                    });
+                    dataForCharts = encuadreLegalCounts;
+                    chartTitlePrefix += 'Encuadre Legal';
+                    chartXAxisTitle = 'Encuadre Legal';
+                }
+
+                if (Object.keys(dataForCharts).length === 0) {
+                    statisticsContentDiv.innerHTML = '<p>No hay datos de novedades para generar estadísticas con los filtros aplicados.</p>';
+                    if (novedadesChartInstance) {
+                        novedadesChartInstance.destroy();
+                        novedadesChartInstance = null;
+                    }
+                    return;
+                }
+
+                let statsHtml = `<h2>${chartTitlePrefix}:</h2><ul>`;
+                if (dayInterval) {
+                    for (const dayPart in dataForCharts) {
+                        statsHtml += `<li><strong>${dayPart.toUpperCase()}:</strong><ul>`;
+                        for (const encuadre in dataForCharts[dayPart]) {
+                            statsHtml += `<li><span>${encuadre.toUpperCase()}:</span> <span>${dataForCharts[dayPart][encuadre]}</span></li>`;
+                        }
+                        statsHtml += '</ul></li>';
+                    }
+                } else {
+                    for (const key in dataForCharts) {
+                        statsHtml += `<li><span>${key.toUpperCase()}:</span> <span>${dataForCharts[key]}</span></li>`;
+                    }
+                }
+                statsHtml += '</ul>';
+                statisticsContentDiv.innerHTML += statsHtml;
+
+                // Prepare data for Chart.js
+                let chartLabels = [];
+                let chartDatasets = [];
+
+                if (dayInterval) {
+                    // Labels will be day parts
+                    chartLabels = Object.keys(dataForCharts).map(key => key.toUpperCase());
+
+                    // Collect all unique encuadre legales
+                    const allEncuadres = new Set();
+                    for (const dayPart in dataForCharts) {
+                        for (const encuadre in dataForCharts[dayPart]) {
+                            allEncuadres.add(encuadre);
+                        }
+                    }
+
+                    // Create a dataset for each encuadre legal
+                    allEncuadres.forEach(encuadre => {
+                        const data = chartLabels.map(label => {
+                            const dayPartKey = label.charAt(0).toUpperCase() + label.slice(1).toLowerCase(); // Convert back to original case for lookup
+                            return dataForCharts[dayPartKey] && dataForCharts[dayPartKey][encuadre] ? dataForCharts[dayPartKey][encuadre] : 0;
+                        });
+                        chartDatasets.push({
+                            label: encuadre.toUpperCase(),
+                            data: data,
+                            backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.5)`,
+                            borderColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`,
+                            borderWidth: 1
+                        });
+                    });
+
+                } else {
+                    chartLabels = Object.keys(dataForCharts).map(key => key.toUpperCase());
+                    chartDatasets.push({
+                        label: 'Número de Novedades',
+                        data: Object.values(dataForCharts),
+                        backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    });
+                }
+
+                if (novedadesChartInstance) {
+                    novedadesChartInstance.data.labels = chartLabels;
+                    novedadesChartInstance.data.datasets = chartDatasets;
+                    novedadesChartInstance.options.scales.x.title.text = chartXAxisTitle;
+                    novedadesChartInstance.options.plugins.title.text = chartTitlePrefix;
+                    if (dayInterval) {
+                        novedadesChartInstance.options.scales.x.stacked = true;
+                        novedadesChartInstance.options.scales.y.stacked = true;
+                        novedadesChartInstance.options.plugins.legend.display = true; // Show legend for stacked chart
+                    } else {
+                        novedadesChartInstance.options.scales.x.stacked = false;
+                        novedadesChartInstance.options.scales.y.stacked = false;
+                        novedadesChartInstance.options.plugins.legend.display = false;
+                    }
+                    novedadesChartInstance.update();
+                } else {
+                    const ctx = document.getElementById('novedadesChart').getContext('2d');
+                    novedadesChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: chartLabels,
+                            datasets: chartDatasets
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Cantidad de Novedades'
+                                    },
+                                    ticks: {
+                                        stepSize: 1
+                                    },
+                                    stacked: dayInterval ? true : false
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: chartXAxisTitle
+                                    },
+                                    stacked: dayInterval ? true : false
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: dayInterval ? true : false
+                                },
+                                title: {
+                                    display: true,
+                                    text: chartTitlePrefix
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Inicializar filtros y mostrar estadísticas de todas las novedades al cargar
+            populateFilters();
+            renderStatistics(allNovedades);
+
+            // Evento para aplicar filtros
+            applyStatsFiltersBtn.addEventListener('click', function() {
+                
+                const selectedDependencia = filterDependenciaSelect.value;
+                const selectedLugar = filterLugarSelect.value;
+                const selectedEncuadreLegal = filterEncuadreLegalInput.value;
+                const startDate = filterStartDateInput.value;
+                const endDate = filterEndDateInput.value;
+                const filterImputadoStats = filterImputadoStatsInput.value.toLowerCase();
+                const filterVictimaStats = filterVictimaStatsInput.value.toLowerCase();
+                const selectedDayTimeInterval = filterDayTimeIntervalSelect.value; // Nuevo filtro de intervalo del día
+
+                let filteredNovedades = [...allNovedades];
+
+                
+                if (selectedDependencia) {
+                    filteredNovedades = filteredNovedades.filter(novedad => novedad.dependencia === selectedDependencia);
+                }
+                if (selectedLugar) {
+                    filteredNovedades = filteredNovedades.filter(novedad => novedad.lugar === selectedLugar);
+                }
+                if (selectedEncuadreLegal) {
+                    filteredNovedades = filteredNovedades.filter(novedad => novedad.encuadreLegal === selectedEncuadreLegal);
+                }
+
+                // Filtrar por rango de fecha
+                if (startDate) {
+                    filteredNovedades = filteredNovedades.filter(novedad => {
+                        const novedadDate = new Date(novedad.fechaDelHecho);
+                        return novedadDate >= new Date(startDate);
+                    });
+                }
+
+                if (endDate) {
+                    filteredNovedades = filteredNovedades.filter(novedad => {
+                        const novedadDate = new Date(novedad.fechaDelHecho);
+                        return novedadDate <= new Date(endDate + 'T23:59:59');
+                    });
+                }
+
+                // Nuevo filtro por Nombre del Imputado
+                if (filterImputadoStats) {
+                    filteredNovedades = filteredNovedades.filter(novedad => {
+                        return novedad.nombreImputado && String(novedad.nombreImputado).toLowerCase().includes(filterImputadoStats);
+                    });
+                }
+
+                // Nuevo filtro por Datos de la Víctima
+                if (filterVictimaStats) {
+                    filteredNovedades = filteredNovedades.filter(novedad => {
+                        return novedad.victima && String(novedad.victima).toLowerCase().includes(filterVictimaStats);
+                    });
+                }
+
+                // Nuevo filtro por Intervalo del Día
+                if (selectedDayTimeInterval) {
+                    filteredNovedades = filteredNovedades.filter(novedad => {
+                        const novedadTime = novedad.horaDelHecho; // Cambiado a novedad.horaDelHecho
+                        if (!novedadTime) return false;
+
+                        const [hours, minutes] = novedadTime.split(':').map(Number);
+                        const totalMinutes = hours * 60 + minutes;
+
+                        switch (selectedDayTimeInterval) {
+                            case 'madrugada':
+                                return totalMinutes >= (0 * 60) && totalMinutes < (6 * 60); // 00:00 - 05:59
+                            case 'manana':
+                                return totalMinutes >= (6 * 60) && totalMinutes < (12 * 60); // 06:00 - 11:59
+                            case 'tarde':
+                                return totalMinutes >= (12 * 60) && totalMinutes < (19 * 60); // 12:00 - 18:59
+                            case 'noche':
+                                return totalMinutes >= (19 * 60) && totalMinutes <= (23 * 60 + 59); // 19:00 - 23:59
+                            default:
+                                return true;
+                        }
+                    });
+                }
+
+                // Agrupar novedades por el intervalo de tiempo seleccionado antes de renderizar estadísticas
+                if (selectedDayTimeInterval) {
+                    renderStatistics(filteredNovedades, selectedDayTimeInterval); // Pasar el intervalo del día
+                } else {
+                    renderStatistics(filteredNovedades);
+                }
+            });
+
+            // Evento para limpiar filtros
+            clearStatsFiltersBtn.addEventListener('click', function() {
+                
+                filterDependenciaSelect.value = '';
+                filterLugarSelect.value = '';
+                filterEncuadreLegalInput.value = '';
+                filterStartDateInput.value = '';
+                filterEndDateInput.value = '';
+                filterImputadoStatsInput.value = '';
+                filterVictimaStatsInput.value = '';
+                filterDayTimeIntervalSelect.value = ''; // Limpiar el nuevo filtro de intervalo del día
+                renderStatistics(allNovedades); // Mostrar todas las estadísticas de nuevo
+            });
+
+        });
+    </script>
+</body>
+</html>

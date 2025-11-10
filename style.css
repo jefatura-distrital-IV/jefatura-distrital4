@@ -1,0 +1,288 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fdfcfc;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Reactivar para centrar verticalmente */
+    align-items: center;
+    min-height: 100vh;
+    background-image: url('imagenes/distrital4.jpg'); /* Imagen de fondo */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.main-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* Para que vaya de orilla a orilla */
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    background-color: rgba(31, 29, 29, 0.801); /* Franja gris con transparencia */
+    padding: 10px 20px; /* Espaciado interno para el icono y el título */
+    box-sizing: border-box; /* Asegura que el padding no aumente el ancho total */
+}
+
+.main-header h1 {
+    color: #ffffff;
+    margin: 0 0 0 10px;
+    font-size: 2em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.header-icon {
+    height: 50px;
+    width: auto;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.login-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
+    margin-top: 20px; /* Añade un margen superior al formulario */
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px; /* Añade un margen inferior al título */
+}
+
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.input-group input[type="text"],
+.password-input-wrapper input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+}
+
+.password-input-wrapper input[type="checkbox"] {
+    margin-left: 10px;
+    margin-right: 5px;
+    width: auto; /* Override 100% width */
+}
+
+.password-input-wrapper label[for="showPassword"] {
+    display: inline-block;
+    margin-bottom: 0;
+    color: #555;
+    font-size: 0.9em;
+}
+
+button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+#registerBtn {
+    background-color: #28a745;
+    margin-top: 10px;
+    display: none;
+}
+
+#registerBtn:hover {
+    background-color: #218838;
+}
+
+#backToLoginBtn {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    display: block; /* Para que margin: auto funcione */
+    width: 100%;
+    max-width: 150px; /* Limitar el ancho para que no ocupe todo */
+    margin: 10px auto; /* Centrar horizontalmente y dar margen vertical */
+}
+
+#backToLoginBtn:hover {
+    background-color: #5a6268;
+}
+
+.dashboard-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+}
+
+.dashboard-container h1 {
+    margin-bottom: 15px;
+}
+
+.dashboard-container p {
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.dashboard-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacio entre los botones */
+    margin-bottom: 20px;
+}
+
+.dashboard-container button {
+    background-color: #007bff; /* Color azul para los botones de función */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+}
+
+.dashboard-container button:hover {
+    background-color: #0056b3;
+}
+
+#logoutBtn {
+    background-color: #f8061e; /* Color rojo para el botón de cerrar sesión */
+    margin-top: 20px; /* Espacio extra sobre el botón de cerrar sesión */
+}
+
+#logoutBtn:hover {
+    background-color: #f8061e;
+}
+
+#registerUserDashboardBtn {
+    background-color: #28a745; /* Verde para el botón de registro */
+    margin-top: 10px; /* Margen superior para separarlo de otros botones */
+}
+
+#registerUserDashboardBtn:hover {
+    background-color: #218838; /* Verde más oscuro al pasar el ratón */
+}
+
+.delete-user-btn {
+    background-color: #dc3545; /* Rojo para el botón de eliminar */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 0.9em;
+}
+
+.delete-user-btn:hover {
+    background-color: #c82333; /* Rojo más oscuro al pasar el ratón */
+}
+
+#viewUsersBtn {
+    background-color: #6c757d; /* Gris para el botón de ver usuarios */
+    margin-top: 10px;
+}
+
+#viewUsersBtn:hover {
+    background-color: #5a6268; /* Gris más oscuro al pasar el ratón */
+}
+
+/* Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Content/Box */
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    position: relative;
+    text-align: left;
+}
+
+/* The Close Button */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.contact-info {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1.1em;
+    z-index: 1000;
+}
+
+#authStatus {
+    display: none;
+}

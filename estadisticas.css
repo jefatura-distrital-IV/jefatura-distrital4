@@ -1,0 +1,146 @@
+/* Estilos específicos para estadisticas.html */
+
+.statistics-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 800px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+.statistics-container h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.statistics-container p {
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.filters-container label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.filters-container input[type="text"],
+.filters-container input[type="number"],
+.filters-container input[type="date"],
+.filters-container select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box; /* Asegura que el padding no aumente el ancho total */
+}
+
+.filters-container button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    color: white;
+    background-color: #007bff;
+    margin-top: 5px; /* Ajuste para alinear con inputs */
+}
+
+.filters-container button:hover {
+    background-color: #0056b3;
+}
+
+#clearStatsFiltersBtn {
+    background-color: #6c757d;
+}
+
+#clearStatsFiltersBtn:hover {
+    background-color: #5a6268;
+}
+
+#statisticsContent {
+    margin-top: 30px;
+    text-align: left;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+#statisticsContent h2 {
+    color: #007bff;
+    margin-bottom: 15px;
+}
+
+#statisticsContent ul {
+    list-style: none;
+    padding: 0;
+}
+
+#statisticsContent li {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#statisticsContent li span:first-child {
+    font-weight: bold;
+    color: #333;
+}
+
+#statisticsContent li span:last-child {
+    color: #007bff;
+    font-size: 1.1em;
+}
+
+.statistics-container > button {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 30px;
+}
+
+.statistics-container > button:hover {
+    background-color: #5a6268;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px; /* Ancho máximo para el gráfico */
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parte de Novedades</title>
+    <link rel="stylesheet" href="novedades_parte.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Parte de Novedades</h1>
+        <form>
+            <div class="input-group">
+                <label for="sumario">SUMARIO:</label>
+                <input type="text" id="sumario" name="sumario" required>
+            </div>
+            <div class="input-group">
+                <label for="expediente">EXPEDIENTE:</label>
+                <input type="text" id="expediente" name="expediente" required list="expedientePrefixes" autocomplete="off">
+                <datalist id="expedientePrefixes">
+                    <option value="P-">
+                    <option value="T-">
+                </datalist>
+            </div>
+            <div class="input-group">
+                <label for="departamento">DEPARTAMENTO:</label>
+                <select id="departamento" name="departamento" required>
+                    <option value="">Seleccione un departamento</option>
+                    <option value="departamental_tupungato">DEPARTAMENTAL TUPUNGATO</option>
+                    <option value="departamental_tunuyan">DEPARTAMENTAL TUNUYAN</option>
+                    <option value="departamental_san_carlos">DEPARTAMENTAL SAN CARLOS</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="dependencia">DEPENDENCIA:</label>
+                <select id="dependencia" name="dependencia" required>
+                    <option value="">Seleccione primero un departamento</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="encuadreLegal">ENCUADRE LEGAL:</label>
+                <input list="encuadreLegalOptions" id="encuadreLegal" name="encuadreLegal" required>
+                <datalist id="encuadreLegalOptions">
+                    <option value="ABANDONO DE PERSONA">
+                    <option value="ABIGEATO">
+                    <option value="ABUSO DE ARMA">
+                    <option value="ABUSO DE AUTORIDAD">
+                    <option value="ABUSO SEXUAL">
+                    <option value="AGRESION CON TODA ARMA">
+                    <option value="AMENAZAS">
+                    <option value="AYUDA O INSTIGACION AL SUICIDIO">
+                    <option value="CALUMNIAS">
+                    <option value="CAPTURA">
+                    <option value="COACCION">
+                    <option value="COMPLEMENTARIA">
+                    <option value="DAÑO">
+                    <option value="DAÑO AGRAVADO">
+                    <option value="DEFRAUDACION MENOR POR APROPIACION DE COSA PERDIDA">
+                    <option value="DELITOS CONTRA LA FE PUBLICA">
+                    <option value="DELITOS CONTRA LA PROPIEDAD INTELECTUAL">
+                    <option value="DESOBEDIENCIA A UNA ORDEN JUDICIAL">
+                    <option value="ENCUBRIMIENTO">
+                    <option value="ESTAFA">
+                    <option value="EVASION">
+                    <option value="EXHIBICIONES OBSCENAS">
+                    <option value="EXTORSION">
+                    <option value="FALSIFICACION DE DOCUMENTO PUBLICO">
+                    <option value="FALTA AL REGIMEN DISCIPLINARIO POLICIAL">
+                    <option value="GROOMING">
+                    <option value="HALLAZGO">
+                    <option value="HECHO">
+                    <option value="HOMICIDIO">
+                    <option value="HOMICIDIO CULPOSO">
+                    <option value="HOMICIDIO EN GRADO DE TENTATIVA">
+                    <option value="HURTO">
+                    <option value="HURTO AGRAVADO">
+                    <option value="HURTO DE BICICLETA">
+                    <option value="HURTO DE MOTOVEHICULO">
+                    <option value="HURTO DE VEHICULO">
+                    <option value="HURTO EN GRADO DE TENTATIVA">
+                    <option value="IMPEDIMENTO DE CONTACTO">
+                    <option value="INFRACCION LEY DE FAUNA">
+                    <option value="INCENDIO">
+                    <option value="INCUMPLIMIENTO DE LOS DEBERES DE ASISTENCIA FAMILIAR">
+                    <option value="INCUMPLIMIENTO DE LOS DEBERES DEL FUNCIONARIO PUBLICO">
+                    <option value="LESIONES">
+                    <option value="LESIONES CULPOSAS">
+                    <option value="LESIONES CULPOSAS GRAVES">
+                    <option value="LESIONES EN ACCIDENTE">
+                    <option value="LESIONES GRAVES">
+                    <option value="LESIONES LEVES">
+                    <option value="LESIONES LEVES AGRAVADAS POR EL VINCULO">
+                    <option value="LEY 14346">
+                    <option value="LEY 9099 (CONTRAVENCIONAL)">
+                    <option value="MALTRATO ANIMAL">
+                    <option value="MEDIDAS PENDIENTES">
+                    <option value="MUERTE">
+                    <option value="MUERTE (S.A.M.)">
+                    <option value="PARADERO">
+                    <option value="PRIVACION ILEGITIMA DE LA LIBERTAD">
+                    <option value="PROCEDENCIA">
+                    <option value="RESISTENCIA A LA AUTORIDAD">
+                    <option value="RETENCION INDEBIDA">
+                    <option value="ROBO">
+                    <option value="ROBO AGRAVADO">
+                    <option value="ROBO AGRAVADO EN GRADO DE TENTATIVA">
+                    <option value="ROBO DE BICICLETA">
+                    <option value="ROBO DE MOTOVEHICULO">
+                    <option value="ROBO DE VEHICULO">
+                    <option value="ROBO EN GRADO DE TENTATIVA">
+                    <option value="SUSTRACCION RETENCION U OCULTAMIENTO DE MENORES">
+                    <option value="TENENCIA DE ARMA">
+                    <option value="TRAFICO DE MEDICAMENTOS O MERCADERIAS PELIGROSAS PARA LA SALUD">
+                    <option value="USURPACION">
+                    <option value="VEJACIONES">
+                    <option value="VIOLACION DE DOMICILIO">
+                    <option value="VIOLACION DE SECRETO">
+                    <option value="VIOLENCIADE GENERO">
+                </datalist>
+            </div>
+            <div class="input-group">
+                <label for="detallesNovedad">DETALLES DE LA NOVEDAD:</label>
+                <textarea id="detallesNovedad" name="detallesNovedad" rows="3" required></textarea>
+            </div>
+            <div class="input-group">
+                <label for="fechaDelHecho">FECHA DEL HECHO:</label>
+                <input type="date" id="fechaDelHecho" name="fechaDelHecho" required>
+            </div>
+            <div class="input-group">
+                <label for="horaHecho">HORA DEL HECHO:</label>
+                <input type="time" id="horaHecho" name="horaHecho" required>
+            </div>
+            <!-- Nuevos campos requeridos -->
+            <div class="input-group">
+                <label for="calle">CALLE:</label>
+                <input type="text" id="calle" name="calle" required>
+            </div>
+            <div class="input-group">
+                <label for="barrio">BARRIO:</label>
+                <input type="text" id="barrio" name="barrio" required>
+            </div>
+            
+            <!-- Nuevo contenedor para diseño de dos columnas -->
+            <div class="layout-row">
+                <div class="input-group map-group">
+                    <label>UBICACION (seleccione en el mapa):</label>
+                    <div id="map"></div>
+                    <div class="coords-display">
+                        <div>
+                            <label for="latitud">Latitud:</label>
+                            <input type="number" id="latitud" name="latitud" step="0.0001" placeholder="Ej: -33.5778">
+                        </div>
+                        <div>
+                            <label for="longitud">Longitud:</label>
+                            <input type="number" id="longitud" name="longitud" step="0.0001" placeholder="Ej: -69.0172">
+                        </div>
+                        <button type="button" id="actualizarMapaBtn">Actualizar Mapa</button>
+                    </div>
+                </div>
+                
+                <!-- Columna derecha para Intervalo de Tiempo y Lugar -->
+                <div class="right-column">
+                    <div class="input-group lugar-group">
+                        <label for="lugar">LUGAR:</label>
+                        <select id="lugar" name="lugar" required>
+                            <option value="">Seleccione un lugar</option>
+                            <option value="vivienda">VIVIENDA</option>
+                            <option value="finca">FINCA</option>
+                            <option value="entidad_privada">ENTIDAD PRIVADA</option>
+                            <option value="entidad_publica">ENTIDAD PUBLICA</option>
+                            <option value="via_publica">VIA PUBLICA</option>
+                            <option value="comercio">COMERCIO</option>
+                            <option value="escuela">ESCUELA</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="bienAfectado">BIEN AFECTADO:</label>
+                <input type="text" id="bienAfectado" name="bienAfectado">
+            </div>
+            <div class="input-group">
+                <label for="victima">DATOS DE LA VICTIMA:</label>
+                <input type="text" id="victima" name="victima">
+            </div>
+            <div class="input-group">
+                <label for="nombreImputado">DATOS DEL IMPUTADO:</label>
+                <input type="text" id="nombreImputado" name="nombreImputado">
+            </div>
+            <div class="input-group">
+                <label for="esclarecidos">ESTADO/SITUACION:</label>
+                <select id="esclarecidos" name="esclarecidos" required>
+                    <option value="">Seleccione una opción</option>
+                    <option value="detenido">DETENIDO</option>
+                    <option value="aprehendido">APREHENDIDO</option>
+                    <option value="sindicado">SINDICADO</option>
+                    <option value="no_resulta">NO RESULTA</option>
+                </select>
+            </div>
+            <button type="submit" id="guardarNovedadBtn">Guardar Novedad</button>
+            <button type="button" onclick="window.history.back()">Volver a la página anterior</button>
+        </form>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // Usar configuración centralizada
+        const API_BASE_URL = Config.API_BASE_URL;
+
+        // Mapeo de departamentos a dependencias
+        const departamentoDependencias = {
+            'departamental_tunuyan': [
+                { value: 'comisaria_15', text: 'COMISARIA 15' },
+                { value: 'comisaria_65', text: 'COMISARIA 65' },
+                { value: 'subcomisaria_el_manzano', text: 'SUBCOMISARIA EL MANZANO' }
+            ],
+            'departamental_san_carlos': [
+                { value: 'comisaria_18', text: 'COMISARIA 18' },
+                { value: 'comisaria_41', text: 'COMISARIA 41' }
+            ],
+            'departamental_tupungato': [
+                { value: 'comisaria_20', text: 'COMISARIA 20' },
+                { value: 'subcomisaria_cordon_del_plata', text: 'SUBCOMISARIA CORDON DEL PLATA' },
+                { value: 'subcomisaria_san_jose', text: 'SUBCOMISARIA SAN JOSE' }
+            ]
+        };
+
+        // Función para actualizar las opciones de dependencia
+        function actualizarDependencias() {
+            const departamentoSelect = document.getElementById('departamento');
+            const dependenciaSelect = document.getElementById('dependencia');
+            
+            // Limpiar opciones actuales
+            dependenciaSelect.innerHTML = '<option value="">Seleccione una dependencia</option>';
+            
+            const departamentoSeleccionado = departamentoSelect.value;
+            
+            if (departamentoSeleccionado && departamentoDependencias[departamentoSeleccionado]) {
+                const dependencias = departamentoDependencias[departamentoSeleccionado];
+                
+                dependencias.forEach(dependencia => {
+                    const option = document.createElement('option');
+                    option.value = dependencia.value;
+                    option.textContent = dependencia.text;
+                    dependenciaSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Script para autocompletar fecha y hora al guardar (ya existente)
+        document.querySelector('.form-container form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const fechaInput = document.getElementById('fecha');
+
+            const now = new Date();
+
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            // Eliminada la línea que autocompletaba la fecha con la actual
+
+            // Obtener fecha y hora de carga actual
+            const fechaCarga = `${year}-${month}-${day}`;
+            const horaCarga = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            // Recolectar todos los datos del formulario
+            const formData = {};
+            const formElements = event.target.elements;
+            for (let i = 0; i < formElements.length; i++) {
+                const element = formElements[i];
+                if (element.name && element.type !== 'button') {
+                    if (element.id === 'latitud' || element.id === 'longitud') {
+                        if (element.value) {
+                            formData[element.name] = parseFloat(element.value);
+                        } else {
+                            // No alertar aquí, simplemente no añadir al formData o añadir como vacío para el manejo posterior
+                            formData[element.name] = null; // Asignar null temporalmente si no hay valor
+                        }
+                    } else if (element.id === 'horaHecho') { // Capturar horaHecho como horaDelHecho
+                        formData['horaDelHecho'] = element.value;
+                    } else if (element.tagName === 'SELECT') {
+                        formData[element.name] = element.value;
+                    } else {
+                        formData[element.name] = element.value;
+                    }
+                }
+            }
+
+            // Combinar latitud y longitud en el campo 'coordenadas'
+            const latitud = formData.latitud;
+            const longitud = formData.longitud;
+
+            if (latitud !== null && longitud !== null) {
+                formData.coordenadas = `${latitud},${longitud}`;
+            } else {
+                // Si no hay coordenadas, enviar una cadena vacía o null para que el backend lo maneje (si allowNull: true)
+                // Como coordenadas es allowNull: false, necesitamos un valor por defecto si no se selecciona
+                formData.coordenadas = '0.0,0.0'; // Valor por defecto si no se proporciona
+            }
+            
+            // Eliminar latitud y longitud individuales del formData para evitar conflictos de mapeo directo
+            delete formData.latitud;
+            delete formData.longitud;
+
+            // VALIDAR los datos recolectados antes de enviar
+            console.log('Frontend: Datos de formData a enviar:', formData); // <-- AGREGADO PARA DEBUG
+
+            // Validar que el expediente empiece con 'P-' o 'T-'
+            const expedienteValue = formData.expediente;
+            if (!expedienteValue.startsWith('P-') && !expedienteValue.startsWith('T-')) {
+                alert("El campo EXPEDIENTE debe comenzar con 'P-' o 'T-'.");
+                return; // Detener el guardado/actualización
+            }
+
+            // Asignar fecha y hora de carga al objeto formData
+            formData['fechaCreacion'] = fechaCarga; // Renombrado a fechaCreacion para coincidir con el backend
+            formData['horaCarga'] = horaCarga;
+            // formData['id'] = Date.now().toString(); // Eliminado: el backend debe generar el ID
+
+            // Obtener novedades existentes o inicializar un array vacío
+            let novedades = JSON.parse(localStorage.getItem('novedades')) || [];
+
+            const form = event.target;
+            const novedadIdToUpdate = form.dataset.novedadId; // Obtener el ID si estamos en modo edición
+
+            // Validar expediente duplicado solo en modo creación o si el expediente cambia en modo edición
+            const nuevoExpediente = formData.expediente;
+
+            // Obtener el token JWT del localStorage
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                alert('No estás autenticado. Por favor, inicia sesión.');
+                window.location.href = 'index.html'; // Redirigir al login
+                return;
+            }
+
+            const isDuplicate = novedades.some(novedad => 
+                novedad.expediente === nuevoExpediente && novedad.id !== novedadIdToUpdate
+            );
+
+            if (isDuplicate) {
+                alert(`Error: Ya existe un parte de novedad con el expediente "${nuevoExpediente}".`);
+                return; // Detener el guardado/actualización
+            }
+
+            let requestUrl = `${API_BASE_URL}/novedades`;
+            let requestMethod = 'POST';
+            let successMessage = 'Parte de Novedades guardado con éxito!';
+
+            if (novedadIdToUpdate) {
+                // Modo edición: actualizar la novedad existente
+                requestUrl = `${API_BASE_URL}/novedades/${novedadIdToUpdate}`;
+                requestMethod = 'PUT';
+                successMessage = 'Novedad actualizada con éxito!';
+            }
+
+            fetch(requestUrl, {
+                method: requestMethod,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // If response is not OK, parse JSON error message from backend
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Error al guardar la novedad.');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(successMessage);
+                // No necesitamos localStorage.setItem('novedades', JSON.stringify(novedades)); aquí
+                // porque el servidor es el que maneja la persistencia.
+
+                const guardarBtn = document.getElementById('guardarNovedadBtn');
+                guardarBtn.disabled = true;
+                guardarBtn.textContent = 'GUARDADO';
+                guardarBtn.style.backgroundColor = '#cccccc'; // Color gris
+
+                // Vaciar todos los campos del formulario
+                event.target.reset(); // Esto vacía la mayoría de los campos
+
+                // Vaciar campos específicos que reset() podría no manejar o que se llenan dinámicamente
+                document.getElementById('latitud').value = '';
+                document.getElementById('longitud').value = '';
+                if (marker) {
+                    map.removeLayer(marker);
+                    marker = null; // Reiniciar el marcador
+                }
+
+                // Restablecer el botón para permitir una nueva novedad (o volver a "Guardar Novedad" si se editó)
+                setTimeout(() => {
+                    guardarBtn.disabled = false;
+                    guardarBtn.textContent = 'Guardar Novedad'; // Cambiar de nuevo a Guardar Novedad
+                    guardarBtn.style.backgroundColor = ''; // Restablecer al estilo original
+                    guardarBtn.classList.remove('edit-mode'); // Quitar clase de modo edición
+                    delete form.dataset.novedadId; // Eliminar el ID del dataset del formulario
+                }, 2000); // Pequeño retraso para que el usuario vea el estado "GUARDADO" o "ACTUALIZADO"
+            })
+            .catch(error => {
+                console.error('Error al guardar la novedad:', error);
+                alert(`Error: ${error.message}`);
+            });
+        });
+
+        // Script para el mapa (nuevo)
+        var map = L.map('map').setView([-33.5777777778, -69.0172222222], 12); // Coordenadas de Tunuyán, Mendoza, con un zoom adecuado
+
+        // Definir las capas de mapas
+        const openStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            name: 'Mapa Callejero'
+        });
+
+        const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://www.esri.com/">Esri</a>',
+            name: 'Vista Satelital'
+        });
+
+        // Agregar la capa por defecto
+        openStreetMap.addTo(map);
+
+        // Crear control de capas
+        const baseMaps = {
+            "Mapa Callejero": openStreetMap,
+            "Vista Satelital": satelliteMap
+        };
+
+        L.control.layers(baseMaps).addTo(map);
+
+        var marker;
+
+        // Función para cargar los datos de una novedad para edición
+        function loadNovedadForEdit(novedadId) {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                alert('No estás autenticado. Por favor, inicia sesión.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            fetch(`${API_BASE_URL}/novedades` , {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Error al cargar la novedad para edición.');
+                    });
+                }
+                return response.json();
+            })
+            .then(novedades => {
+                const novedadToEdit = novedades.find(n => n.id === novedadId);
+                if (novedadToEdit) {
+                    // Rellenar el formulario con los datos de la novedad
+                    for (const key in novedadToEdit) {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            if (element.type === 'date') {
+                                element.value = novedadToEdit[key];
+                            } else if (element.tagName === 'SELECT') {
+                                element.value = novedadToEdit[key];
+                                // Si es el campo departamento, actualizar las dependencias
+                                if (key === 'departamento') {
+                                    actualizarDependencias();
+                                }
+                            } else if (key === 'horaDelHecho') { // Capturar horaHecho como horaDelHecho
+                                document.getElementById('horaHecho').value = novedadToEdit[key];
+                            } else if (key === 'nombreImputado') {
+                                document.getElementById('nombreImputado').value = novedadToEdit[key];
+                            } else if (key === 'detallesNovedad') {
+                                document.getElementById('detallesNovedad').value = novedadToEdit[key];
+                            } else {
+                                element.value = novedadToEdit[key];
+                            }
+                        }
+                    }
+
+                    // Manejar latitud y longitud y el marcador del mapa
+                    const latitud = novedadToEdit.latitud;
+                    const longitud = novedadToEdit.longitud;
+                    if (latitud && longitud) {
+                        document.getElementById('latitud').value = latitud.toFixed(4);
+                        document.getElementById('longitud').value = longitud.toFixed(4);
+                        if (marker) {
+                            map.removeLayer(marker);
+                        }
+                        marker = L.marker([latitud, longitud]).addTo(map);
+                        map.setView([latitud, longitud], 12); // Centrar el mapa en la novedad
+                    }
+
+                    // Cambiar el texto del botón y añadir una clase para indicar modo edición
+                    const guardarBtn = document.getElementById('guardarNovedadBtn');
+                    guardarBtn.textContent = 'Actualizar Novedad';
+                    guardarBtn.classList.add('edit-mode');
+
+                    // Guardar el ID de la novedad en un campo oculto o en un atributo del formulario
+                    document.querySelector('form').dataset.novedadId = novedadId;
+                } else {
+                    alert('Novedad no encontrada.');
+                    window.location.href = 'ver_novedades.html';
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar la novedad para edición:', error);
+                alert(`Error: ${error.message}`);
+            });
+        }
+
+        // Al cargar la página, verificar si hay un ID de novedad para editar
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const novedadId = urlParams.get('id');
+            if (novedadId) {
+                loadNovedadForEdit(novedadId);
+            }
+            
+            // Agregar event listener para cambio de departamento
+            const departamentoSelect = document.getElementById('departamento');
+            departamentoSelect.addEventListener('change', actualizarDependencias);
+            
+            // Configurar automáticamente para usuarios OFICIAL DE 15
+            configurarUsuarioOficial15();
+        });
+
+        // Función para configurar automáticamente el formulario para OFICIAL DE 15, OFICIAL DE 18, OFICIAL DE 20 y OFICIAL DE 65
+        function configurarUsuarioOficial15() {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) return;
+            
+            try {
+                // Decodificar el token JWT para obtener el rol del usuario
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const userRole = payload.role;
+                
+                if (userRole === 'OFICIAL DE 15') {
+                    // Seleccionar automáticamente DEPARTAMENTAL TUNUYAN
+                    const departamentoSelect = document.getElementById('departamento');
+                    departamentoSelect.value = 'departamental_tunuyan';
+                    
+                    // Actualizar las dependencias y seleccionar COMISARIA 15
+                    actualizarDependencias();
+                    
+                    // Esperar un momento para que se actualicen las dependencias
+                    setTimeout(() => {
+                        const dependenciaSelect = document.getElementById('dependencia');
+                        dependenciaSelect.value = 'comisaria_15';
+                    }, 100);
+                } else if (userRole === 'OFICIAL DE 18') {
+                    // Seleccionar automáticamente DEPARTAMENTAL SAN CARLOS
+                    const departamentoSelect = document.getElementById('departamento');
+                    departamentoSelect.value = 'departamental_san_carlos';
+                    
+                    // Actualizar las dependencias y seleccionar COMISARIA 18
+                    actualizarDependencias();
+                    
+                    // Esperar un momento para que se actualicen las dependencias
+                    setTimeout(() => {
+                        const dependenciaSelect = document.getElementById('dependencia');
+                        dependenciaSelect.value = 'comisaria_18';
+                    }, 100);
+                } else if (userRole === 'OFICIAL DE 20') {
+                    // Seleccionar automáticamente DEPARTAMENTAL TUPUNGATO
+                    const departamentoSelect = document.getElementById('departamento');
+                    departamentoSelect.value = 'departamental_tupungato';
+                    
+                    // Actualizar las dependencias y seleccionar COMISARIA 20
+                    actualizarDependencias();
+                    
+                    // Esperar un momento para que se actualicen las dependencias
+                    setTimeout(() => {
+                        const dependenciaSelect = document.getElementById('dependencia');
+                        dependenciaSelect.value = 'comisaria_20';
+                    }, 100);
+                } else if (userRole === 'OFICIAL DE 65') {
+                    // Seleccionar automáticamente DEPARTAMENTAL TUNUYAN
+                    const departamentoSelect = document.getElementById('departamento');
+                    departamentoSelect.value = 'departamental_tunuyan';
+                    
+                    // Actualizar las dependencias y seleccionar COMISARIA 65
+                    actualizarDependencias();
+                    
+                    // Esperar un momento para que se actualicen las dependencias
+                    setTimeout(() => {
+                        const dependenciaSelect = document.getElementById('dependencia');
+                        dependenciaSelect.value = 'comisaria_65';
+                    }, 100);
+                } else if (userRole === 'OFICIAL DE 41') {
+                    // Seleccionar automáticamente DEPARTAMENTAL SAN CARLOS
+                    const departamentoSelect = document.getElementById('departamento');
+                    departamentoSelect.value = 'departamental_san_carlos';
+                    
+                    // Actualizar las dependencias y seleccionar COMISARIA 41
+                    actualizarDependencias();
+                    
+                    // Esperar un momento para que se actualicen las dependencias
+                    setTimeout(() => {
+                        const dependenciaSelect = document.getElementById('dependencia');
+                        dependenciaSelect.value = 'comisaria_41';
+                    }, 100);
+                } else if (userRole === 'OFICIAL MANZANO HISTORICO') {
+                    // Seleccionar automáticamente DEPARTAMENTAL TUNUYAN
+                    const departamentoSelect = document.getElementById('departamento');
+                    departamentoSelect.value = 'departamental_tunuyan';
+                    
+                    // Actualizar las dependencias y seleccionar SUBCOMISARIA EL MANZANO
+                    actualizarDependencias();
+                    
+                    // Esperar un momento para que se actualicen las dependencias
+                    setTimeout(() => {
+                        const dependenciaSelect = document.getElementById('dependencia');
+                        dependenciaSelect.value = 'subcomisaria_el_manzano';
+                    }, 100);
+                } else if (userRole === 'OFICIAL CORDON DEL PLATA') {
+                    // Seleccionar automáticamente DEPARTAMENTAL TUPUNGATO
+                    const departamentoSelect = document.getElementById('departamento');
+                    departamentoSelect.value = 'departamental_tupungato';
+                    
+                    // Actualizar las dependencias y seleccionar SUBCOMISARIA CORDON DEL PLATA
+                    actualizarDependencias();
+                    
+                    // Esperar un momento para que se actualicen las dependencias
+                    setTimeout(() => {
+                        const dependenciaSelect = document.getElementById('dependencia');
+                        dependenciaSelect.value = 'subcomisaria_cordon_del_plata';
+                    }, 100);
+                } else if (userRole === 'OFICIAL DE SAN JOSE') {
+                    // Seleccionar automáticamente DEPARTAMENTAL TUPUNGATO
+                    const departamentoSelect = document.getElementById('departamento');
+                    departamentoSelect.value = 'departamental_tupungato';
+                    
+                    // Actualizar las dependencias y seleccionar SUBCOMISARIA SAN JOSE
+                    actualizarDependencias();
+                    
+                    // Esperar un momento para que se actualicen las dependencias
+                    setTimeout(() => {
+                        const dependenciaSelect = document.getElementById('dependencia');
+                        dependenciaSelect.value = 'subcomisaria_san_jose';
+                    }, 100);
+                }
+            } catch (error) {
+                console.error('Error al decodificar el token JWT:', error);
+            }
+        }
+
+        map.on('click', function(e) {
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            marker = L.marker(e.latlng).addTo(map);
+            document.getElementById('latitud').value = e.latlng.lat.toFixed(4);
+            document.getElementById('longitud').value = e.latlng.lng.toFixed(4);
+        });
+
+        // Función para actualizar el mapa con coordenadas manuales
+        function actualizarMapaConCoordenadas() {
+            const latitud = parseFloat(document.getElementById('latitud').value);
+            const longitud = parseFloat(document.getElementById('longitud').value);
+            
+            // Validar que las coordenadas sean números válidos
+            if (isNaN(latitud) || isNaN(longitud)) {
+                alert('Por favor, ingrese coordenadas válidas (números).');
+                return;
+            }
+            
+            // Validar rangos de coordenadas (aproximadamente para Argentina)
+            if (latitud < -60 || latitud > -20 || longitud < -80 || longitud > -50) {
+                alert('Las coordenadas están fuera del rango válido para Argentina.');
+                return;
+            }
+            
+            // Actualizar el mapa
+            map.setView([latitud, longitud], 12);
+            
+            // Actualizar o crear el marcador
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            marker = L.marker([latitud, longitud]).addTo(map);
+        }
+
+        // Event listener para el botón de actualizar mapa
+        document.getElementById('actualizarMapaBtn').addEventListener('click', actualizarMapaConCoordenadas);
+
+
+        // Event listeners para actualizar el mapa cuando se cambien las coordenadas manualmente
+        document.getElementById('latitud').addEventListener('change', function() {
+            if (this.value && document.getElementById('longitud').value) {
+                actualizarMapaConCoordenadas();
+            }
+        });
+
+        document.getElementById('longitud').addEventListener('change', function() {
+            if (this.value && document.getElementById('latitud').value) {
+                actualizarMapaConCoordenadas();
+            }
+        });
+
+        // Añadir el control de geolocalización de Leaflet después de que el mapa esté completamente inicializado
+        setTimeout(() => {
+            L.control.locate({
+                position: 'topleft',
+                strings: {
+                    title: "Localizar mi ubicación"
+                },
+                locateOptions: {
+                    maxZoom: 16,
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
+                },
+                onLocationError: function(err) {
+                    console.error('Error de geolocalización:', err);
+                    
+                    let errorMessage = '';
+                    switch(err.code) {
+                        case err.PERMISSION_DENIED:
+                            errorMessage = 'Permiso de geolocalización denegado. Por favor, permite el acceso a tu ubicación en la configuración del navegador o ingresa las coordenadas manualmente.';
+                            break;
+                        case err.POSITION_UNAVAILABLE:
+                            errorMessage = 'Ubicación no disponible. Verifica que el GPS esté activado o ingresa las coordenadas manualmente.';
+                            break;
+                        case err.TIMEOUT:
+                            errorMessage = 'Tiempo de espera agotado. Intenta nuevamente o ingresa las coordenadas manualmente.';
+                            break;
+                        default:
+                            errorMessage = 'Error al obtener tu ubicación: ' + err.message + '. Puedes ingresar las coordenadas manualmente.';
+                            break;
+                    }
+                    
+                    // Mostrar un mensaje más amigable y dar opciones al usuario
+                    if (confirm(errorMessage + '\n\n¿Deseas ingresar las coordenadas manualmente?')) {
+                        // Enfocar en el campo de latitud para que el usuario pueda ingresar coordenadas
+                        document.getElementById('latitud').focus();
+                    }
+                },
+                onLocationOutsideMapBounds: function(lc) {
+                    lc.stop();
+                    alert("Tu ubicación está fuera del área del mapa actual.");
+                },
+                flyTo: true, // Animación para volar a la ubicación
+                showPopup: false, // No mostrar un popup por defecto
+                drawCircle: false, // No dibujar un círculo de precisión
+                onLocationFound: function(e) {
+                    // Al encontrar la ubicación, actualizar los campos de latitud y longitud
+                    document.getElementById('latitud').value = e.latitude.toFixed(4);
+                    document.getElementById('longitud').value = e.longitude.toFixed(4);
+
+                    // También colocar un marcador si no hay uno o actualizar el existente
+                    if (marker) {
+                        map.removeLayer(marker);
+                    }
+                    marker = L.marker(e.latlng).addTo(map);
+                }
+            }).addTo(map);
+        }, 100);
+    </script>
+</body>
+</html>

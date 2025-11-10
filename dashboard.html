@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>JEFATURA - DISTRITAL 4</h1>
+        <p id="welcomeMessage"></p>
+        <div class="dashboard-buttons">
+            <button id="novedadesParteBtn" onclick="window.location.href='novedades_parte.html'">PARTE DE NOVEDADES</button>
+            <button id="verNovedadesBtn" onclick="window.location.href='ver_novedades.html'">VER PARTES DE NOVEDADES</button>
+            <button id="mapaDelictualBtn" onclick="window.location.href='mapa_delictual.html'">MAPA DELICTUAL</button>
+            <button id="estadisticasBtn" onclick="window.location.href='estadisticas.html'">ESTADISTICAS</button>
+            <button id="registerUserDashboardBtn">REGISTRAR USUARIO</button>
+            <button id="viewUsersBtn">VER USUARIOS</button>
+        </div>
+        <button id="logoutBtn">Cerrar Sesión</button>
+    </div>
+
+    <!-- The Modal (moved from index.html) -->
+    <div id="registerModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Registrar Nuevo Usuario</h2>
+            <form id="registerForm">
+                <div class="input-group">
+                    <label for="regName">Nombre:</label>
+                    <input type="text" id="regName" name="regName" required>
+                </div>
+                <div class="input-group">
+                    <label for="regLastName">Apellido:</label>
+                    <input type="text" id="regLastName" name="regLastName" required>
+                </div>
+                <div class="input-group">
+                    <label for="regPhone">Teléfono:</label>
+                    <input type="tel" id="regPhone" name="regPhone">
+                </div>
+                <div class="input-group">
+                    <label for="regHierarchy">Jerarquía:</label>
+                    <input type="text" id="regHierarchy" name="regHierarchy">
+                </div>
+                <div class="input-group">
+                    <label for="regRole">Rol:</label>
+                    <select id="regRole" name="regRole">
+                        <option value="user">OPERATIVO</option>
+                        <option value="admin">Administrador</option>
+                        <option value="OFICIAL DE 15">OFICIAL DE 15</option>
+                        <option value="OFICIAL DE 18">OFICIAL DE 18</option>
+                        <option value="OFICIAL DE 20">OFICIAL DE 20</option>
+                        <option value="OFICIAL DE 65">OFICIAL DE 65</option>
+                        <option value="OFICIAL DE 41">OFICIAL DE 41</option>
+                        <option value="OFICIAL MANZANO HISTORICO">OFICIAL MANZANO HISTORICO</option>
+                        <option value="OFICIAL CORDON DEL PLATA">OFICIAL CORDON DEL PLATA</option>
+                        <option value="OFICIAL DE SAN JOSE">OFICIAL DE SAN JOSE</option>
+                        <option value="JEF.DPTAL.TUNUYAN">JEF.DPTAL.TUNUYAN</option>
+                        <option value="JEF.DPTAL.SAN CARLOS">JEF.DPTAL.SAN CARLOS</option>
+                        <option value="JEF.DPTAL.TUPUNGATO">JEF.DPTAL.TUPUNGATO</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="regUsername">Nombre de Usuario:</label>
+                    <input type="text" id="regUsername" name="regUsername" required>
+                </div>
+                <div class="input-group">
+                    <label for="regPassword">Contraseña:</label>
+                    <input type="password" id="regPassword" name="regPassword" required>
+                </div>
+                <div class="input-group">
+                    <label for="regConfirmPassword">Confirmar Contraseña:</label>
+                    <input type="password" id="regConfirmPassword" name="regConfirmPassword" required>
+                </div>
+                <button type="submit">Registrar</button>
+                <button type="button" id="backToDashboardBtn">Volver</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para ver usuarios -->
+    <div id="usersModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeUsersModal">&times;</span>
+            <h2>Usuarios Registrados</h2>
+            <div id="usersList"></div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loggedInUsername = localStorage.getItem(Config.USERNAME_KEY);
+            const userRole = localStorage.getItem(Config.USER_ROLE_KEY);
+            const jwtToken = localStorage.getItem(Config.TOKEN_KEY);
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            const novedadesParteBtn = document.getElementById('novedadesParteBtn');
+            const verNovedadesBtn = document.getElementById('verNovedadesBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const registerUserDashboardBtn = document.getElementById('registerUserDashboardBtn');
+            const viewUsersBtn = document.getElementById('viewUsersBtn');
+            const mapaDelictualBtn = document.getElementById('mapaDelictualBtn');
+            const estadisticasBtn = document.getElementById('estadisticasBtn');
+
+            // Modal elements
+            var modal = document.getElementById("registerModal");
+            var span = document.getElementsByClassName("close")[0];
+            var backToDashboardBtn = document.getElementById("backToDashboardBtn");
+
+            // Registration form elements
+            var registerForm = document.getElementById("registerForm");
+            var regPassword = document.getElementById("regPassword");
+            var regConfirmPassword = document.getElementById("regConfirmPassword");
+            var regRole = document.getElementById("regRole");
+            var regName = document.getElementById("regName");
+            var regLastName = document.getElementById("regLastName");
+            var regPhone = document.getElementById("regPhone");
+            var regHierarchy = document.getElementById("regHierarchy");
+
+            // Users modal elements
+            var usersModal = document.getElementById("usersModal");
+            var closeUsersModal = document.getElementById("closeUsersModal");
+            var usersList = document.getElementById("usersList");
+
+            // Obtener el ID del usuario logueado del localStorage
+            const loggedInUserId = localStorage.getItem(Config.USER_ID_KEY);
+
+            if (!jwtToken) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (loggedInUsername) {
+                welcomeMessage.textContent = `Bienvenido, ${loggedInUsername} (${userRole}).`;
+            } else {
+                welcomeMessage.textContent = 'Has iniciado sesión o te has registrado con éxito.';
+            }
+
+            // Control de visibilidad de botones según el rol
+            if (userRole === 'admin') {
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                registerUserDashboardBtn.style.display = 'block'; // Mostrar botón de registro para admin
+                viewUsersBtn.style.display = 'block'; // Mostrar botón de ver usuarios para admin
+                mapaDelictualBtn.style.display = 'block'; // Mostrar para admin
+                estadisticasBtn.style.display = 'block'; // Mostrar para admin
+            } else if (userRole === 'user-oficiales') { // Nuevo rol
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para oficiales
+                viewUsersBtn.style.display = 'none'; // Ocultar para oficiales
+                estadisticasBtn.style.display = 'none'; // Ocultar para oficiales
+            } else if (userRole === 'OFICIAL DE 15') { // Rol OFICIAL DE 15
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para OFICIAL DE 15
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para OFICIAL DE 15
+                viewUsersBtn.style.display = 'none'; // Ocultar para OFICIAL DE 15
+                estadisticasBtn.style.display = 'none'; // Ocultar para OFICIAL DE 15
+            } else if (userRole === 'OFICIAL DE 20') { // Rol OFICIAL DE 20
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para OFICIAL DE 20
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para OFICIAL DE 20
+                viewUsersBtn.style.display = 'none'; // Ocultar para OFICIAL DE 20
+                estadisticasBtn.style.display = 'none'; // Ocultar para OFICIAL DE 20
+            } else if (userRole === 'OFICIAL DE 65') { // Rol OFICIAL DE 65
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para OFICIAL DE 65
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para OFICIAL DE 65
+                viewUsersBtn.style.display = 'none'; // Ocultar para OFICIAL DE 65
+                estadisticasBtn.style.display = 'none'; // Ocultar para OFICIAL DE 65
+            } else if (userRole === 'OFICIAL DE 18') { // Rol OFICIAL DE 18
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para OFICIAL DE 18
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para OFICIAL DE 18
+                viewUsersBtn.style.display = 'none'; // Ocultar para OFICIAL DE 18
+                estadisticasBtn.style.display = 'none'; // Ocultar para OFICIAL DE 18
+            } else if (userRole === 'OFICIAL DE 41') { // Rol OFICIAL DE 41
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para OFICIAL DE 41
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para OFICIAL DE 41
+                viewUsersBtn.style.display = 'none'; // Ocultar para OFICIAL DE 41
+                estadisticasBtn.style.display = 'none'; // Ocultar para OFICIAL DE 41
+            } else if (userRole === 'OFICIAL MANZANO HISTORICO') { // Rol OFICIAL MANZANO HISTORICO
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para OFICIAL MANZANO HISTORICO
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para OFICIAL MANZANO HISTORICO
+                viewUsersBtn.style.display = 'none'; // Ocultar para OFICIAL MANZANO HISTORICO
+                estadisticasBtn.style.display = 'none'; // Ocultar para OFICIAL MANZANO HISTORICO
+            } else if (userRole === 'OFICIAL CORDON DEL PLATA') { // Rol OFICIAL CORDON DEL PLATA
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para OFICIAL CORDON DEL PLATA
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para OFICIAL CORDON DEL PLATA
+                viewUsersBtn.style.display = 'none'; // Ocultar para OFICIAL CORDON DEL PLATA
+                estadisticasBtn.style.display = 'none'; // Ocultar para OFICIAL CORDON DEL PLATA
+            } else if (userRole === 'OFICIAL DE SAN JOSE') { // Rol OFICIAL DE SAN JOSE
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para OFICIAL DE SAN JOSE
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para OFICIAL DE SAN JOSE
+                viewUsersBtn.style.display = 'none'; // Ocultar para OFICIAL DE SAN JOSE
+                estadisticasBtn.style.display = 'none'; // Ocultar para OFICIAL DE SAN JOSE
+            } else if (userRole === 'JEF.DPTAL.TUNUYAN') { // Rol JEF.DPTAL.TUNUYAN
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para JEF.DPTAL.TUNUYAN
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para JEF.DPTAL.TUNUYAN
+                viewUsersBtn.style.display = 'none'; // Ocultar para JEF.DPTAL.TUNUYAN
+                estadisticasBtn.style.display = 'block'; // Mostrar para JEF.DPTAL.TUNUYAN
+            } else if (userRole === 'JEF.DPTAL.SAN CARLOS') { // Rol JEF.DPTAL.SAN CARLOS
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para JEF.DPTAL.SAN CARLOS
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para JEF.DPTAL.SAN CARLOS
+                viewUsersBtn.style.display = 'none'; // Ocultar para JEF.DPTAL.SAN CARLOS
+                estadisticasBtn.style.display = 'block'; // Mostrar para JEF.DPTAL.SAN CARLOS
+            } else if (userRole === 'JEF.DPTAL.TUPUNGATO') { // Rol JEF.DPTAL.TUPUNGATO
+                novedadesParteBtn.style.display = 'block';
+                verNovedadesBtn.style.display = 'block';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar Mapa Delictual para JEF.DTAL.TUPUNGATO
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para JEF.DTAL.TUPUNGATO
+                viewUsersBtn.style.display = 'none'; // Ocultar para JEF.DTAL.TUPUNGATO
+                estadisticasBtn.style.display = 'none'; // Ocultar para JEF.DTAL.TUPUNGATO
+            } else if (userRole === 'user') { // Rol OPERATIVO
+                novedadesParteBtn.style.display = 'none';
+                verNovedadesBtn.style.display = 'none';
+                registerUserDashboardBtn.style.display = 'none';
+                viewUsersBtn.style.display = 'none';
+                mapaDelictualBtn.style.display = 'block'; // Mostrar solo Mapa Delictual para OPERATIVO
+                estadisticasBtn.style.display = 'none';
+            } else {
+                novedadesParteBtn.style.display = 'none';
+                verNovedadesBtn.style.display = 'none';
+                registerUserDashboardBtn.style.display = 'none'; // Ocultar para no admin ni oficiales
+                viewUsersBtn.style.display = 'none'; // Ocultar para no admin ni oficiales
+                mapaDelictualBtn.style.display = 'none'; // Ocultar por defecto
+                estadisticasBtn.style.display = 'none'; // Ocultar por defecto
+            }
+
+            // Manejar el logout
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem(Config.TOKEN_KEY);
+                localStorage.removeItem(Config.USERNAME_KEY);
+                localStorage.removeItem(Config.USER_ROLE_KEY);
+                localStorage.removeItem(Config.USER_ID_KEY);
+                window.location.href = 'index.html';
+            });
+
+            // Lógica del modal de registro
+            if (registerUserDashboardBtn) {
+                registerUserDashboardBtn.onclick = function() {
+                    modal.style.display = "flex"; // Usar flex para centrar el modal
+                }
+            }
+
+            if (span) {
+                span.onclick = function() {
+                    modal.style.display = "none";
+                }
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                } else if (event.target == usersModal) { // Cerrar modal de usuarios también
+                    usersModal.style.display = "none";
+                }
+            }
+
+            if (backToDashboardBtn) {
+                backToDashboardBtn.onclick = function() {
+                    modal.style.display = "none";
+                }
+            }
+
+            // Lógica de envío del formulario de registro
+            registerForm.onsubmit = async function(event) {
+                event.preventDefault(); // Evitar el envío del formulario por defecto
+
+                if (regPassword.value !== regConfirmPassword.value) {
+                    alert("Las contraseñas no coinciden.");
+                    return;
+                }
+
+                const adminToken = localStorage.getItem(Config.TOKEN_KEY);
+                if (!adminToken) {
+                    alert('Error: Token de administrador no encontrado.');
+                    return;
+                }
+
+                const username = document.getElementById('regUsername').value;
+                const password = regPassword.value;
+                const role = regRole.value;
+                const name = regName.value;
+                const lastName = regLastName.value;
+                const phone = regPhone.value;
+                const hierarchy = regHierarchy.value;
+
+                try {
+                    const data = await apiRequest('/register', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${adminToken}`
+                        },
+                        body: JSON.stringify({ username, password, role, name, lastName, phone, hierarchy })
+                    });
+
+                    alert(data.message);
+                    modal.style.display = 'none';
+                    registerForm.reset();
+                    if (usersModal.style.display === 'flex') {
+                        fetchUsers(); 
+                    }
+                } catch (error) {
+                    alert(error.message || 'Error al registrar usuario.');
+                }
+            };
+
+            // Función para obtener y mostrar usuarios
+            async function fetchUsers() {
+                const adminToken = localStorage.getItem(Config.TOKEN_KEY);
+                if (!adminToken) {
+                    alert('Error: Token de administrador no encontrado. No se pueden cargar usuarios.');
+                    return;
+                }
+
+                try {
+                    const usersData = await apiRequest('/users', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${adminToken}`
+                        }
+                    });
+
+                    usersList.innerHTML = '';
+                    if (usersData.length === 0) {
+                        usersList.innerHTML = '<p>No hay usuarios registrados.</p>';
+                        return;
+                    }
+                    const ul = document.createElement('ul');
+                    usersData.forEach(user => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `ID: ${user.id}, Usuario: ${user.username}, Rol: ${user.role}`;
+                        if (userRole === 'admin' && user.id !== parseInt(loggedInUserId)) {
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.textContent = 'Eliminar';
+                            deleteBtn.classList.add('delete-user-btn');
+                            deleteBtn.onclick = async () => {
+                                if (confirm(`¿Estás seguro de que quieres eliminar a ${user.username}?`)) {
+                                    await deleteUser(user.id); 
+                                }
+                            };
+                            li.appendChild(deleteBtn);
+                        }
+                        ul.appendChild(li);
+                    });
+                    usersList.appendChild(ul);
+                } catch (error) {
+                    alert(error.message || 'Error al cargar usuarios.');
+                }
+            }
+
+            // Función para eliminar un usuario
+            async function deleteUser(userId) {
+                const adminToken = localStorage.getItem(Config.TOKEN_KEY);
+                if (!adminToken) {
+                    alert('Error: Token de administrador no encontrado. No se puede eliminar usuarios.');
+                    return;
+                }
+
+                try {
+                    const data = await apiRequest(`/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${adminToken}`
+                        }
+                    });
+
+                    alert(data.message);
+                    fetchUsers();
+                } catch (error) {
+                    alert(error.message || 'Error al eliminar usuario.');
+                }
+            }
+
+            // Lógica del modal para ver usuarios
+            if (viewUsersBtn) {
+                viewUsersBtn.onclick = async function() {
+                    await fetchUsers(); // Cargar usuarios antes de mostrar el modal
+                    usersModal.style.display = "flex";
+                }
+            }
+
+            if (closeUsersModal) {
+                closeUsersModal.onclick = function() {
+                    usersModal.style.display = "none";
+                }
+            }
+        });
+    </script>
+</body>
+</html>

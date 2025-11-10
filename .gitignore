@@ -1,0 +1,13 @@
+# Ignorar directorios y archivos de sistema/cache
+.vscode/
+.cursor/
+AppData/
+
+# Ignorar archivos de registro
+*.log
+npm-debug.log*
+
+# Ignorar archivos de dependencia
+node_modules/
+dist/
+build/
