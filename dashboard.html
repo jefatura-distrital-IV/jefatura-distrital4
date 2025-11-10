@@ -11,10 +11,10 @@
         <h1>JEFATURA - DISTRITAL 4</h1>
         <p id="welcomeMessage"></p>
         <div class="dashboard-buttons">
-            <button id="novedadesParteBtn" onclick="window.location.href='novedades_parte.html'">PARTE DE NOVEDADES</button>
-            <button id="verNovedadesBtn" onclick="window.location.href='ver_novedades.html'">VER PARTES DE NOVEDADES</button>
-            <button id="mapaDelictualBtn" onclick="window.location.href='mapa_delictual.html'">MAPA DELICTUAL</button>
-            <button id="estadisticasBtn" onclick="window.location.href='estadisticas.html'">ESTADISTICAS</button>
+            <button id="novedadesParteBtn">PARTE DE NOVEDADES</button>
+            <button id="verNovedadesBtn">VER PARTES DE NOVEDADES</button>
+            <button id="mapaDelictualBtn">MAPA DELICTUAL</button>
+            <button id="estadisticasBtn">ESTADISTICAS</button>
             <button id="registerUserDashboardBtn">REGISTRAR USUARIO</button>
             <button id="viewUsersBtn">VER USUARIOS</button>
         </div>
@@ -137,6 +137,20 @@
             } else {
                 welcomeMessage.textContent = 'Has iniciado sesión o te has registrado con éxito.';
             }
+
+            // Redireccionar al hacer clic en los botones de navegación
+            novedadesParteBtn.addEventListener('click', () => {
+                window.location.href = 'novedades_parte.html';
+            });
+            verNovedadesBtn.addEventListener('click', () => {
+                window.location.href = 'ver_novedades.html';
+            });
+            mapaDelictualBtn.addEventListener('click', () => {
+                window.location.href = 'mapa_delictual.html';
+            });
+            estadisticasBtn.addEventListener('click', () => {
+                window.location.href = 'estadisticas.html';
+            });
 
             // Control de visibilidad de botones según el rol
             if (userRole === 'admin') {

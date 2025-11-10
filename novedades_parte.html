@@ -202,7 +202,7 @@
                 </select>
             </div>
             <button type="submit" id="guardarNovedadBtn">Guardar Novedad</button>
-            <button type="button" onclick="window.history.back()">Volver a la página anterior</button>
+            <button type="button" id="backButton">Volver a la página anterior</button>
         </form>
     </div>
 
@@ -766,6 +766,11 @@
                 }
             }).addTo(map);
         }, 100);
+
+        // Event listener para el botón de "Volver a la página anterior"
+        document.getElementById('backButton').addEventListener('click', () => {
+            window.history.back();
+        });
     </script>
 </body>
 </html>
