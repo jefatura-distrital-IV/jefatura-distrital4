@@ -51,7 +51,7 @@
         </div>
 
         <div id="novedadesList"></div>
-        <button onclick="console.log('Botón Volver clickeado'); window.history.back()">Volver a la página anterior</button>
+        <button id="backButtonVerNovedades">Volver a la página anterior</button>
     </div>
 
     <script src="config.js"></script>
@@ -432,6 +432,11 @@
                 const dateString = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
                 const filename = `PARTE DE NOVEDADES_${dateString}`;
                 exportToExcel(currentNovedadesToRender, filename);
+            });
+
+            // Event listener para el botón de "Volver a la página anterior"
+            document.getElementById('backButtonVerNovedades').addEventListener('click', () => {
+                window.history.back();
             });
 
             function exportToExcel(data, filename) {

@@ -8,6 +8,7 @@ const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Sequelize, DataTypes } = require('sequelize');
+const path = require('path'); // Importar path para manejar rutas de archivos
 
 // Importar módulos de mejoras
 const logger = require('./utils/logger');
@@ -151,8 +152,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Archivos estáticos solo desde la raíz actual, pero con bloqueo anterior
-app.use(express.static(__dirname));
+// Archivos estáticos
+app.use(express.static(__dirname)); // Sirve archivos desde la raíz del proyecto (para HTML, etc.)
+app.use('/js', express.static(path.join(__dirname, 'js'))); // Sirve archivos JavaScript desde el directorio 'js'
+app.use('/css', express.static(path.join(__dirname, 'css'))); // Sirve archivos CSS desde el directorio 'css'
 
 // Clave secreta para JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';

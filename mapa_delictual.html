@@ -66,7 +66,7 @@
             <button id="clearMapFiltersBtn">Limpiar Filtros</button>
         </div>
         <div id="delictualMap"></div>
-        <button onclick="window.history.back()">Volver a la página anterior</button>
+        <button id="backButtonMap">Volver a la página anterior</button>
     </div>
 
     <script src="config.js"></script>
@@ -578,6 +578,11 @@
                     drawCircle: true, // Dibujar un círculo de precisión
                 }).addTo(map);
             }, 100);
+
+            // Event listener para el botón de "Volver a la página anterior"
+            document.getElementById('backButtonMap').addEventListener('click', () => {
+                window.history.back();
+            });
         });
     </script>
 </body>
