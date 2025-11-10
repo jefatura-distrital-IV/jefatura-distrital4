@@ -29,6 +29,8 @@ app.use((req, res, next) => {
 
 const PORT = process.env.PORT || 3001;
 
+// ... código existente arriba ...
+
 // Configuración de Sequelize para diferentes bases de datos
 let sequelize;
 
@@ -59,6 +61,14 @@ if (process.env.DATABASE_URL) {
     }
   });
   logger.info('Configuración de base de datos: PostgreSQL');
+} else if (process.env.DB_DIALECT === 'mysql') {
+  sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: 'mysql',
+    logging: false,
+  });
+  logger.info('Configuración de base de datos: MySQL');
 } else { // Por defecto, usa SQLite
   sequelize = new Sequelize({
     dialect: 'sqlite',
@@ -72,11 +82,15 @@ if (process.env.DATABASE_URL) {
 async function connectDB() {
   try {
     await sequelize.authenticate();
-    logger.info('Conexión a la base de datos SQLite establecida exitosamente');
+    // Mensaje de log genérico
+    logger.info('Conexión a la base de datos establecida exitosamente');
   } catch (error) {
-    logger.error('No se pudo conectar a la base de datos SQLite', { error: error.message });
+    // Mensaje de log genérico
+    logger.error('No se pudo conectar a la base de datos', { error: error.message });
   }
 }
+
+// ... código existente abajo ...
 
 connectDB();
 
