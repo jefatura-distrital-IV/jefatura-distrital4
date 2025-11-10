@@ -522,7 +522,7 @@ app.post('/register', authenticateToken, authorizeRoles(['admin']), async (req, 
   const { username, password, role, name, lastName, phone, hierarchy } = req.body;
 
   // Validar datos de entrada
-  const validation = validateUserData({ username, password, role, phone });
+  const validation = validateUserData({ username, password, role, name, lastName, phone, hierarchy });
   if (!validation.valid) {
     logger.warn('Intento de registro con datos inválidos', { errors: validation.errors });
     return res.status(400).json({ 
